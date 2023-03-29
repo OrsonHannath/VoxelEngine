@@ -1,0 +1,4 @@
+"D:\Jetbrains Suite\CLion 2021.3.4\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=D:/Jetbrains Suite/CLion 2021.3.4/bin/ninja/win/ninja.exe" -G Ninja C:\Users\User\Desktop\Portfolio\VoxelEngine
+-- Configuring done
+-- Generating done
+-- Build files have been written to: C:/Users/User/Desktop/Portfolio/VoxelEngine/cmake-build-debug

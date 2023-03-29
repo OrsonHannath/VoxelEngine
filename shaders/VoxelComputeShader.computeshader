@@ -1,0 +1,112 @@
+#version 440 core
+layout(local_size_x = 1, local_size_y = 16, local_size_z = 16) in;
+
+struct Chunk{
+    vec3 pos;
+};
+
+struct Voxel{
+    int voxType;
+    bool isSolid;
+};
+
+struct Vertex{
+    float x;
+    float y;
+    float z;
+};
+
+struct Colour{
+    float r;
+    float g;
+    float b;
+    float a;
+};
+
+// Chunk Data
+layout(binding = 3) buffer chunk_data {
+
+    Chunk chunk[];
+};
+
+// Voxel Data (data for each voxel in the chunk)
+layout(binding = 0) buffer voxel_data {
+
+    Voxel voxels[];
+};
+
+// Vertices Data
+layout(binding = 1) buffer vertices_out {
+
+    Vertex vertices[];
+};
+
+// Vertex Colour Data
+layout(binding = 2) buffer vertexColours_out {
+
+    Colour vertex_colours[];
+};
+
+// Source: OpenGL_Programming - Modern_OpenGL_Tutorial_05
+float voxel_vertices[] = {  -1.0, -1.0,  1.0,
+                            1.0, -1.0,  1.0,
+                            1.0,  1.0,  1.0,
+                            -1.0,  1.0,  1.0,
+                            -1.0, -1.0, -1.0,
+                            1.0, -1.0, -1.0,
+                            1.0,  1.0, -1.0,
+                            -1.0,  1.0, -1.0};
+
+int voxel_faces[] = {0, 1, 2, // Front
+                     2, 3, 0,
+                     1, 5, 6, // Right
+                     6, 2, 1,
+                     7, 6, 5, // Back
+                     5, 4, 7,
+                     4, 0, 3, // Left
+                     3, 7, 4,
+                     4, 5, 1, // Bottom
+                     1, 0, 4,
+                     3, 2, 6, // Top
+                     6, 7, 3};
+
+void main() {
+
+    // Get the x, y and z position of the voxel
+    int x = int(gl_WorkGroupID.x); // x will be the x value of dispatch
+    int y = int(gl_LocalInvocationID.y); // y will be the y value of invocation
+    int z = int(gl_LocalInvocationID.z); // z will be the z value of invocation
+
+    // Determine this voxels world space location
+    float xWS = chunk[0].pos.x + (x - int(gl_NumWorkGroups.x / 2));
+    float yWS = chunk[0].pos.y + (y - int(gl_WorkGroupSize.y / 2));
+    float zWS = chunk[0].pos.z + (z - int(gl_WorkGroupSize.z / 2));
+
+    // The flattened position of the current invocation
+    uint invocationPos = x + gl_WorkGroupSize.y * (y + gl_WorkGroupSize.z * z);
+
+    // Initialize some structs
+    Vertex v; // Init a vertex
+    Colour c; // Init a colour
+
+    // Generate each face of the voxel
+    for(int i = 0; i < 36; i++){
+
+        int vertexIndex = voxel_faces[i] * 3;
+
+        Vertex v;
+        v.x = voxel_vertices[vertexIndex] + xWS;
+        v.y = voxel_vertices[vertexIndex+1] + yWS;
+        v.z = voxel_vertices[vertexIndex+2] + zWS;
+
+        Colour c;
+        c.r = 1.0;
+        c.g = 1.0;
+        c.b = 1.0;
+        c.a = 1.0;
+
+        int vertexBufferPos = int((invocationPos * 36) + i);
+        vertices[vertexBufferPos] = v;
+        vertex_colours[vertexBufferPos] = c;
+    }
+}
