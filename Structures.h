@@ -13,13 +13,18 @@ struct ChunkStruct{
 
 struct VoxelStruct{
     int voxType;
-    bool isSolid;
+    int isSolid;
 };
 
 struct VertexStruct{
     float x;
     float y;
     float z;
+
+    bool operator==(VertexStruct &vertex) const{
+
+        return (x == vertex.x) && (y == vertex.y) && (z == vertex.z);
+    }
 };
 
 struct ColourStruct{
@@ -27,6 +32,18 @@ struct ColourStruct{
     float g;
     float b;
     float a;
+
+    ColourStruct operator*(ColourStruct &colour) const{
+
+        ColourStruct cs = {r * colour.r, g * colour.g, b * colour.b, a * colour.a};
+        return cs;
+    }
+
+    ColourStruct operator+(ColourStruct &colour) const{
+
+        ColourStruct cs = {r + colour.r, g + colour.g, b + colour.b, a + colour.a};
+        return cs;
+    }
 };
 
 

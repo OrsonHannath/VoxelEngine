@@ -9,30 +9,36 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glew.h>
 #include <vector>
+#include "Structures.h"
+#include "Colour.h"
 #include "Object.h"
 
 class RenderObject: public Object{
 protected:
-    std::vector<GLfloat> vertex_buffer_data;
-    std::vector<GLfloat> vertex_colour_data;
+    std::vector<VertexStruct> vertex_buffer_data;
+    std::vector<ColourStruct> vertex_colour_data;
     int vertex_buffer_size;
     mat4 modelMatrix;
     mat4 mvpMatrix;
+    bool shouldRender = true;
 public:
     RenderObject(std::string name);
 
     void SetMVPMatrix(mat4 mvp);
     void SetObjectColour(vec4 col_);
-    void SetVertexBufferData(std::vector<GLfloat> data_);
-    void SetVertexColourData(std::vector<GLfloat> data_);
+    void SetVertexBufferData(std::vector<VertexStruct> data_);
+    void SetVertexColourData(std::vector<ColourStruct> data_);
 
+    void OverlayVertexColours(Colour col);
+    void SetShouldRender(bool shouldRender_);
 
+    bool ShouldRender();
     vec3 GetObjectPosition();
     vec3 GetObjectRotation();
     vec3 GetObjectScale();
     mat4 GetMVPMatrix();
-    std::vector<GLfloat> GetVertexBufferData();
-    std::vector<float> GetVertexColourData();
+    std::vector<VertexStruct> GetVertexBufferData();
+    std::vector<ColourStruct> GetVertexColourData();
 };
 
 

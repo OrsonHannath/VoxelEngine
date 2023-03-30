@@ -11,11 +11,10 @@ Triangle::Triangle(std::string name, vec3 pos, vec3 rot, vec3 scale) : RenderObj
     SetScale(scale);
 
     // Determine the vertex positions
-    vec3 v1 = vec3(pos.x - (scale.x/2.0f), pos.y, 0.0f);
-    vec3 v2 = vec3(pos.x, pos.y + scale.y, 0.0f);
-    vec3 v3 = vec3(pos.x + (scale.x/2.0f), pos.y, 0.0f);
-
-    std::vector<GLfloat> triangle_vertex_buffer_data = {v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z};
+    VertexStruct v1 = {pos.x - (scale.x/2.0f), pos.y, 0.0f};
+    VertexStruct v2 = {pos.x, pos.y + scale.y, 0.0f};
+    VertexStruct v3 = {pos.x + (scale.x/2.0f), pos.y, 0.0f};
+    std::vector<VertexStruct> triangle_vertex_buffer_data = {v1, v2, v3};
 
     vertex_buffer_data = triangle_vertex_buffer_data;
     vertex_buffer_size = sizeof(triangle_vertex_buffer_data)/sizeof(triangle_vertex_buffer_data[0]);

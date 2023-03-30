@@ -16,12 +16,25 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
 
     // Create an array of Voxel Objects the total size of the chunk
     // Then Create a buffer for the input voxel data
-    VoxelStruct voxels[size*size*size];
+    std::vector<VoxelStruct> voxels(size*size*size);
+    for(int i = 0; i < size; i++){
+        for(int j = 0; j < size; j++){
+            for(int k = 0; k < size; k++){
+
+                int randX = rand() % 2;
+                voxels.at(i + size * (j + size * k)).isSolid = 1;
+
+                int randC = rand() % 255;
+                voxels.at(i + size * (j + size * k)).voxType = randC;
+            }
+        }
+    }
+
     GLuint voxelDataBuffer;
     glGenBuffers(1, &voxelDataBuffer);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, voxelDataBuffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0 ,voxelDataBuffer);
-    glBufferStorage(GL_SHADER_STORAGE_BUFFER, sizeof(voxels), voxels, 0);
+    glBufferStorage(GL_SHADER_STORAGE_BUFFER, voxels.size() * sizeof(VoxelStruct), voxels.data(), 0);
 
     // Create an array of vertex positions (Init at maximum possible vertices for chunk)
     // Then Create a buffer for the output vertices
@@ -60,34 +73,49 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
     outVertices.resize(maxVerticesPossible);
     glGetNamedBufferSubData(verticesBuffer, 0, outVertices.size() * sizeof(VertexStruct), outVertices.data());
     verticesVec.clear();
-    for(VertexStruct vs : outVertices){
+    verticesVec = outVertices;
+    /*for(VertexStruct vs : outVertices){
 
         //std::cerr << "[" << vs.x << "," << vs.y << "," << vs.z << "], ";
-
-        verticesVec.push_back(vs.x);
-        verticesVec.push_back(vs.y);
-        verticesVec.push_back(vs.z);
-    }
+    }*/
 
     // Retrieve the output vertex colours and apply them to local variable
     std::vector<ColourStruct> outVertexColours;
     outVertexColours.resize(maxVerticesPossible);
     glGetNamedBufferSubData(vertexColoursBuffer, 0, outVertexColours.size() * sizeof(ColourStruct), outVertexColours.data());
     vertexColoursVec.clear();
-    for(ColourStruct cs : outVertexColours){
+    vertexColoursVec = outVertexColours;
+    /*for(ColourStruct cs : outVertexColours){
 
-        vertexColoursVec.push_back(cs.r);
-        vertexColoursVec.push_back(cs.g);
-        vertexColoursVec.push_back(cs.b);
-        vertexColoursVec.push_back(cs.a);
+        std::cerr << "[" << cs.r << "," << cs.g << "," << cs.b << "," << cs.a << "], ";
+    }*/
+
+    // Remove all vertices/faces that cannot possibly render from ourVectors (Vertices and Vertex Colours Vectors should be same size)
+    verticesVec.clear();
+    vertexColoursVec.clear();
+    for(int i = 0; i < outVertices.size()/3; i++){
+
+        int iAdjPos = i*3;
+        if(!(outVertices.at(iAdjPos) == outVertices.at(iAdjPos+1) && outVertices.at(iAdjPos) == outVertices.at(iAdjPos+2))){
+
+            // Push the vertices to the chunks vertices since they are not all the same value (i.e. not null)
+            verticesVec.push_back(outVertices.at(iAdjPos));
+            verticesVec.push_back(outVertices.at(iAdjPos+1));
+            verticesVec.push_back(outVertices.at(iAdjPos+2));
+
+            // Push the vertex colours to the chunks vertex colours since they are not all the same value (i.e. not null)
+            vertexColoursVec.push_back(outVertexColours.at(iAdjPos));
+            vertexColoursVec.push_back(outVertexColours.at(iAdjPos+1));
+            vertexColoursVec.push_back(outVertexColours.at(iAdjPos+2));
+        }
     }
 
     /*// Check that voxel data is being sent and recieved correctly
-    VoxelStruct feedback[size*size*size];
-    glGetNamedBufferSubData(voxelDataBuffer, 0, sizeof(feedback), feedback);
-    for(int i = 0; i < size*size*size; i++){
+    std::vector<VoxelStruct> voxelFeedback(size*size*size);
+    glGetNamedBufferSubData(voxelDataBuffer, 0, voxelFeedback.size() * sizeof(VoxelStruct), voxelFeedback.data());
+    for(VoxelStruct voxelStruct : voxelFeedback){
 
-        std::cerr << "[" << feedback[i].voxType << "," << feedback[i].isSolid << "], ";
+        std::cerr << "[" << voxelStruct.voxType << "," << voxelStruct.isSolid << "], ";
     }*/
 
     // Create and set the render object of this chunk

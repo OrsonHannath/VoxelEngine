@@ -22,8 +22,8 @@ private:
     vec3 position;
     static const int size = 16;
     std::map<std::string, Voxel> voxelMap;
-    std::vector<float> verticesVec; // Probably don't need to store here
-    std::vector<float> vertexColoursVec; // Probably don't need to store here
+    std::vector<VertexStruct> verticesVec; // Probably don't need to store here
+    std::vector<ColourStruct> vertexColoursVec; // Probably don't need to store here
     RenderObject* renderObject;
 public:
     Chunk(vec3 position_);

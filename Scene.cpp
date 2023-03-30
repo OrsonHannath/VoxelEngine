@@ -74,16 +74,92 @@ void Scene::RenderScene(float* deltaTimePtr) {
             (void*)0                          // array buffer offset
     );
 
-    // Draw the triangles/faces
-    glDrawArrays(GL_TRIANGLES, 0, vertsToDraw); // Starting from vertex 0; 3 vertices total -> 1 triangle
-    glDisableVertexAttribArray(0);
+    // Now draw the render object vertices
+    glDrawArrays(GL_TRIANGLES, 0, vertsToDraw);
+
+    // Draw each chunk
+    for(auto& kv : voxelWorld->GetChunksMap()){
+
+        Chunk* chunk = kv.second;
+
+        // Get the render object and check if it should be rendered
+        RenderObject* renderObject = chunk->GetRenderObject();
+        if(!renderObject->ShouldRender()){
+
+            std::cerr << chunk->GetChunkName() << " shouldn't render" << std::endl;
+            continue;
+        }
+
+        // Get the vertex and colour information from the object
+        std::vector<VertexStruct> object_vertex_buffer = renderObject->GetVertexBufferData();
+        std::vector<ColourStruct> object_colour_buffer = renderObject->GetVertexColourData();
+
+        // Calculate how many vertices should be drawn
+        int vertsToDraw = object_vertex_buffer.size() * 3;
+
+        // Voxel Debugging
+        for(int i = 0; i < (object_vertex_buffer.size() / sizeof(vertexBuffer)) / 12; i++){
+
+            float xTotal = 0;
+            float yTotal = 0;
+            float zTotal = 0;
+            for(int j = 0; j < 12; j++){
+
+                xTotal += object_vertex_buffer.at((i*12) + j).x;
+                yTotal += object_vertex_buffer.at((i*12) + j).y;
+                zTotal += object_vertex_buffer.at((i*12) + j).z;
+            }
+
+            //std::cout << "[" << xTotal/12.0f << ", " << yTotal/12.0f << ", " << zTotal/12.0f << "]" << std::endl;
+        }
+
+        // Update the MVPMatrix and ModelMatrix
+        renderObject->SetMVPMatrix(camera->GenerateMVPMatrix());
+        mat4 mvpMat = renderObject->GetMVPMatrix();
+        glUniformMatrix4fv(GLHandles["matrixID"], 1, GL_FALSE, &mvpMat[0][0]);
+
+        // Set the vertex buffer
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+        glBufferData(GL_ARRAY_BUFFER, object_vertex_buffer.size() * sizeof(object_vertex_buffer[0]), &object_vertex_buffer[0], GL_STATIC_DRAW);
+
+        // Set the vertex colour buffer
+        glBindBuffer(GL_ARRAY_BUFFER, colourBuffer);
+        glBufferData(GL_ARRAY_BUFFER, object_colour_buffer.size() * sizeof(object_colour_buffer[0]), &object_colour_buffer[0], GL_STATIC_DRAW);
+
+
+        // 1st attribute buffer : vertices
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+        glVertexAttribPointer(
+                0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+                3,                  // size
+                GL_FLOAT,           // type
+                GL_FALSE,           // normalized?
+                0,                  // stride
+                (void*)0            // array buffer offset
+        );
+
+        // 2nd attribute buffer : colors
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, colourBuffer);
+        glVertexAttribPointer(
+                1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+                4,                                // size
+                GL_FLOAT,                         // type
+                GL_FALSE,                         // normalized?
+                0,                                // stride
+                (void*)0                          // array buffer offset
+        );
+
+        glDrawArrays(GL_TRIANGLES, 0, vertsToDraw); // Can use GL_LINES to just draw wiremesh
+    }
 }
 
 void Scene::UpdateVertexBuffer(int &vertsToDraw_) {
 
     // Go through the scenes objects and find all that are render-able and add them to the vertex_buffer
-    std::vector<GLfloat> vertex_buffer_vector;
-    std::vector<GLfloat> vertex_colour_vector;
+    std::vector<VertexStruct> vertex_buffer_vector;
+    std::vector<ColourStruct> vertex_colour_vector;
     for(auto& kv : objectsMapByName){
 
         Object* object = kv.second;
@@ -93,19 +169,14 @@ void Scene::UpdateVertexBuffer(int &vertsToDraw_) {
 
             //std::cout << object->GetName() << std::endl;
 
+            // Get the vertex and colour information from the object
             RenderObject* renderObject = static_cast<RenderObject*>(object);
-            std::vector<GLfloat> object_vertex_buffer = renderObject->GetVertexBufferData();
-            std::vector<float> object_colour_buffer = renderObject->GetVertexColourData();
+            std::vector<VertexStruct> object_vertex_buffer = renderObject->GetVertexBufferData();
+            std::vector<ColourStruct> object_colour_buffer = renderObject->GetVertexColourData();
 
-            for(GLfloat val : object_vertex_buffer){
-
-                vertex_buffer_vector.push_back(val);
-            }
-
-            for(GLfloat val : object_colour_buffer){
-
-                vertex_colour_vector.push_back(val);
-            }
+            // Add the vertex and colour information to the total vectors
+            vertex_buffer_vector.insert(vertex_buffer_vector.end(), object_vertex_buffer.begin(), object_vertex_buffer.end());
+            vertex_colour_vector.insert(vertex_colour_vector.end(), object_colour_buffer.begin(), object_colour_buffer.end());
 
             // Update the MVPMatrix and ModelMatrix
             renderObject->SetMVPMatrix(camera->GenerateMVPMatrix());
@@ -115,7 +186,7 @@ void Scene::UpdateVertexBuffer(int &vertsToDraw_) {
     }
 
     // Let the renderer know how many triangles need to be drawn
-    int numVerts = vertex_buffer_vector.size();
+    int numVerts = vertex_buffer_vector.size() * 3;
     vertsToDraw_ = numVerts;
 
     // Give our vertices to OpenGL.

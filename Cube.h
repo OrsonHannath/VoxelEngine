@@ -11,7 +11,7 @@
 class Cube: public RenderObject{
 public:
     Cube(std::string name, vec3 pos, vec3 rot, vec3 scale);
-    void SetVertexColours(std::vector<float> vertexColours);
+    void SetVertexColours(std::vector<ColourStruct> vertexColours);
 };
 
 

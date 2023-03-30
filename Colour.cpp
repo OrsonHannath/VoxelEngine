@@ -51,6 +51,17 @@ float Colour::GetAlpha() {
     return alpha;
 }
 
+Colour Colour::operator*(Colour &col) const {
+
+    return Colour(red * col.red, green * col.GetGreen(), blue * col.GetBlue(), alpha * col.GetAlpha());
+}
+
+ColourStruct Colour::GetColourStruct() {
+
+    ColourStruct cs = {red, green, blue, alpha};
+    return cs;
+}
+
 Colour LerpBetweenColours(Colour* startCol, Colour* endCol, float lerpPos){
 
     float lerpedRed = (endCol->GetRed() - startCol->GetRed()) * lerpPos + startCol->GetRed();

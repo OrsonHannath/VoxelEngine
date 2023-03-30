@@ -5,6 +5,8 @@
 #ifndef VOXELENGINE_COLOR_H
 #define VOXELENGINE_COLOR_H
 
+#include "Structures.h"
+
 class Colour {
 private:
     float red;
@@ -24,6 +26,10 @@ public:
     float GetGreen();
     float GetBlue();
     float GetAlpha();
+
+    Colour operator*(Colour &col) const;
+
+    ColourStruct GetColourStruct();
 };
 
 Colour LerpBetweenColours(Colour* startCol, Colour* endCol, float lerpPos);

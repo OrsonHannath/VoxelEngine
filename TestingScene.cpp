@@ -13,19 +13,31 @@ TestingScene::TestingScene(std::string name, GLFWwindow* window_, std::map<std::
     SetCamera(camera);
 
     // Add a VoxelWorld to the Scene
-    VoxelWorld* voxelWorld = new VoxelWorld();
-    voxelWorld->SetComputeProgramID(GLHandles["computeProgramID"]);
+    VoxelWorld* voxelWorld_ = new VoxelWorld();
+    voxelWorld = voxelWorld_;
+    voxelWorld_->SetComputeProgramID(GLHandles["computeProgramID"]);
 
-    std::cout << GLHandles["computeProgramID"] << std::endl;
+    int chunkViewDist = 2;
+    int chunkSize = 16;
+    for(int i = ceil(-(chunkViewDist/2.0f)); i < ceil(chunkViewDist/2.0f); i++) {
+        for (int j = ceil(-(chunkViewDist/2.0f)); j < ceil(chunkViewDist/2.0f); j++) {
+            for (int k = ceil(-(chunkViewDist/2.0f)); k < ceil(chunkViewDist/2.0f); k++) {
 
-    // Add a Chunk to the VoxelWorld
-    Chunk* chunk = new Chunk(vec3(0, 0, 0));
-    voxelWorld->AddChunk(chunk);
+                // Add a Chunk to the VoxelWorld
+                Chunk *chunk = new Chunk(vec3((i*chunkSize), (j*chunkSize), (k*chunkSize)));
+                voxelWorld_->AddChunk(chunk);
 
-    // Generate/Load the chunk
-    voxelWorld->LoadChunk(chunk->GetChunkName());
+                // Generate/Load the chunk
+                voxelWorld_->LoadChunk(chunk->GetChunkName());
 
-    // Add the chunks render object to the scene
-    RenderObject* chunkRenderObject = chunk->GetRenderObject();
-    objectsMapByName[chunkRenderObject->GetName()] = chunkRenderObject;
+                // Add the chunks render object to the scene
+                RenderObject *chunkRenderObject = chunk->GetRenderObject();
+                chunkRenderObjectsMapByName[chunkRenderObject->GetName()] = chunkRenderObject;
+
+                // Add a random colour overlay to each chunk
+                Colour randCol = RandomColour();
+                chunkRenderObject->OverlayVertexColours(randCol);
+            }
+        }
+    }
 }

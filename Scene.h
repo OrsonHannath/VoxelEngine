@@ -15,10 +15,13 @@
 #include "Camera.h"
 #include "Object.h"
 #include "RenderObject.h"
+#include "Chunk.h"
+#include "VoxelWorld.h"
 
 class Scene {
 protected:
     std::map<std::string, GLuint> GLHandles;
+    VoxelWorld* voxelWorld;
 private:
     std::string name;
     Camera* camera;
@@ -26,11 +29,11 @@ private:
     GLuint colourBuffer;
     GLFWwindow* window;
 
-    void UpdateVertexBuffer(int &vertsToDraw);
+    void UpdateVertexBuffer(int &vertsToDraw_);
 
 protected:
     std::map<std::string, Object*> objectsMapByName;
-
+    std::map<std::string, Object*> chunkRenderObjectsMapByName;
 public:
 
     Scene(std::string name_, GLFWwindow* window_, std::map<std::string, GLuint> GLHandles_);

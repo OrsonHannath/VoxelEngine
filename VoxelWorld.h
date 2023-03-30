@@ -7,11 +7,14 @@
 
 #include <map>
 #include <iostream>
+#include <vector>
 #include "Chunk.h"
 
 class VoxelWorld {
 private:
     std::map<std::string, Chunk*> chunksMap;
+    std::map<std::string, std::vector<VertexStruct>> chunksVertexBufferMap;
+    std::map<std::string, std::vector<ColourStruct>> chunksColourBufferMap;
     GLuint voxelComputeProgramID;
 public:
     VoxelWorld();
@@ -19,7 +22,9 @@ public:
     void SetComputeProgramID(GLuint voxelComputeProgramID_);
     void AddChunk(Chunk* chunk);
     void LoadChunk(std::string chunkName);
-    Chunk GetChunk();
+
+    std::map<std::string, Chunk*> GetChunksMap();
+    Chunk* GetChunk(std::string name_);
 };
 
 
