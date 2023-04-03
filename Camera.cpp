@@ -111,7 +111,7 @@ void Camera::UpdateCamera(float* deltaTimePtr) {
     }
 
     // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-    projection = glm::perspective(glm::radians((float)fov), (float) windowWidth / (float)windowHeight, 0.1f, 100.0f);
+    projection = glm::perspective(glm::radians((float)fov), (float) windowWidth / (float)windowHeight, 0.1f, 1000.0f);
 
     // Camera matrix
     view = glm::lookAt(
@@ -119,6 +119,8 @@ void Camera::UpdateCamera(float* deltaTimePtr) {
             position + direction, // and looks at the origin
             up  // Head is up (set to 0,-1,0 to look upside-down)
     );
+
+    //std::cout << position.x << ", " << position.y << ", " << position.z << std::endl;
 }
 
 void Camera::SetPosition(vec3 pos) {

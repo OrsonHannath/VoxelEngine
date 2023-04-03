@@ -6,6 +6,7 @@
 #define VOXELENGINE_STRUCTURES_H
 
 #include <glm/glm.hpp>
+#include <iostream>
 
 struct ChunkStruct{
     glm::vec3 pos;
@@ -24,6 +25,12 @@ struct VertexStruct{
     bool operator==(VertexStruct &vertex) const{
 
         return (x == vertex.x) && (y == vertex.y) && (z == vertex.z);
+    }
+
+    std::string toString(){
+
+        std::string str = "[" + std::to_string(x) + ", " + std::to_string(y) + ", "+ std::to_string(z) + "]";
+        return str;
     }
 };
 

@@ -9,6 +9,41 @@ Chunk::Chunk(vec3 position_) {
     position = position_;
 }
 
+void Chunk::GenerateChunkVoxels() {
+
+    // Find where the random artefacts are coming from
+    // Pass in surrounding chunks border voxels so that we know 100% what needs to be rendered
+
+    PerlinNoise perlinNoise = PerlinNoise();
+
+    std::cout << GetChunkName() << std::endl;
+
+    for(int i = 0; i < size; i++){
+        for(int j = 0; j < size; j++){
+            for(int k = 0; k < size; k++){
+
+                chunkVoxels[i][j][k].voxType = (rand() % 255);
+
+                int voxelWSX = floor(position.x) + i;
+                int voxelWSY = floor(position.y) + j;
+                int voxelWSZ = floor(position.z) + k;
+
+                float freq = 0.2;
+                float amp = 5;
+                float surfaceY = 8 + sin(voxelWSX * freq)*amp;
+
+                // Set the voxel isSolid
+                if(voxelWSY < surfaceY){
+
+                    chunkVoxels[i][j][k].isSolid = 1;
+                }else{
+                    chunkVoxels[i][j][k].isSolid = 0;
+                }
+            }
+        }
+    }
+}
+
 void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
 
     // Maximum number of vertices possible per chunk (each voxel will have maximum 3*12 vertices (verticesPerFace * Faces))
@@ -16,16 +51,24 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
 
     // Create an array of Voxel Objects the total size of the chunk
     // Then Create a buffer for the input voxel data
-    std::vector<VoxelStruct> voxels(size*size*size);
+    std::vector<VoxelStruct> voxels;
     for(int i = 0; i < size; i++){
         for(int j = 0; j < size; j++){
             for(int k = 0; k < size; k++){
 
-                int randX = rand() % 2;
-                voxels.at(i + size * (j + size * k)).isSolid = 1;
+                voxels.push_back(chunkVoxels[i][j][k]);
+            }
+        }
+    }
 
-                int randC = rand() % 255;
-                voxels.at(i + size * (j + size * k)).voxType = randC;
+    // Create an array of Neighbouring Face Voxel Objects
+    // Then Create a buffer for the input voxel data
+    std::vector<int> neighbouringFaceVoxels;
+    for(int i = 0; i < 6; i++){
+        for(int j = 0; j < size; j++){
+            for(int k = 0; k < size; k++){
+
+                neighbouringFaceVoxels.push_back(chunkNeighbouringFaceVoxels[i][j][k]);
             }
         }
     }
@@ -63,6 +106,13 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3 ,chunkStructBuffer);
     glBufferStorage(GL_SHADER_STORAGE_BUFFER, sizeof(chunkStructArr), chunkStructArr, 0);
 
+    // Create a buffer to send in neighbouring chunk faces
+    GLuint neighbouringFacesBuffer;
+    glGenBuffers(1, &neighbouringFacesBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, neighbouringFacesBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4 ,neighbouringFacesBuffer);
+    glBufferStorage(GL_SHADER_STORAGE_BUFFER, neighbouringFaceVoxels.size() * sizeof(int), neighbouringFaceVoxels.data(), 0);
+
     // Compute the shader
     glUseProgram(computeShaderID);
     glDispatchCompute(16, 1, 1);
@@ -73,7 +123,6 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
     outVertices.resize(maxVerticesPossible);
     glGetNamedBufferSubData(verticesBuffer, 0, outVertices.size() * sizeof(VertexStruct), outVertices.data());
     verticesVec.clear();
-    verticesVec = outVertices;
     /*for(VertexStruct vs : outVertices){
 
         //std::cerr << "[" << vs.x << "," << vs.y << "," << vs.z << "], ";
@@ -84,7 +133,6 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
     outVertexColours.resize(maxVerticesPossible);
     glGetNamedBufferSubData(vertexColoursBuffer, 0, outVertexColours.size() * sizeof(ColourStruct), outVertexColours.data());
     vertexColoursVec.clear();
-    vertexColoursVec = outVertexColours;
     /*for(ColourStruct cs : outVertexColours){
 
         std::cerr << "[" << cs.r << "," << cs.g << "," << cs.b << "," << cs.a << "], ";
@@ -110,8 +158,14 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
         }
     }
 
-    /*// Check that voxel data is being sent and recieved correctly
-    std::vector<VoxelStruct> voxelFeedback(size*size*size);
+    /*for(VertexStruct vs : verticesVec){
+        if(vs.x < position.x - 8 || vs.y < position.y - 8 || vs.z < position.z - 8) {
+            std::cout << "[" << vs.x << "," << vs.y << "," << vs.z << "], ";
+        }
+    }*/
+
+    // Check that voxel data is being sent and received correctly
+    /*std::vector<VoxelStruct> voxelFeedback(size*size*size);
     glGetNamedBufferSubData(voxelDataBuffer, 0, voxelFeedback.size() * sizeof(VoxelStruct), voxelFeedback.data());
     for(VoxelStruct voxelStruct : voxelFeedback){
 
@@ -122,6 +176,219 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
     renderObject = new RenderObject(GetChunkName());
     renderObject->SetVertexBufferData(verticesVec);
     renderObject->SetVertexColourData(vertexColoursVec);
+}
+
+// chunkNeighboursLoaded has pointers to neighbouring chunks in order - (front, right, back, left, bottom, top)
+// Function updates the chunkNeighbouringFaceVoxels var for this chunk, this is based on the chunkNeighboursLoaded input
+// which specifies if there are neighbouring chunks that are already loaded
+void Chunk::UpdateChunksNeighbours(std::vector<Chunk*> chunkNeighboursLoaded, GLuint computeShaderID) {
+
+    // Array that remaps the faceIndex i.e. front face maps to back face. (normal order - front, right, back, left, bottom, top)
+    int remapFaceIndex[] = {2, 3, 0, 1, 5, 4};
+
+    // Update front neighbour
+    if(chunkNeighboursLoaded.at(0) != nullptr){
+
+        // Update this chunks information about the neighbouring chunk
+        UpdateChunkNeighbour(chunkNeighboursLoaded.at(0), 0);
+
+        // Update the neighbouring chunks' information about this chunk and regenerate its vertices
+        chunkNeighboursLoaded.at(0)->UpdateChunkNeighbour(this, remapFaceIndex[0]);
+        chunkNeighboursLoaded.at(0)->GenerateChunkVertices(computeShaderID);
+    }
+
+    // Update right neighbour
+    if(chunkNeighboursLoaded.at(1) != nullptr){
+
+        // Update this chunks information about the neighbouring chunk
+        UpdateChunkNeighbour(chunkNeighboursLoaded.at(1), 1);
+
+        // Update the neighbouring chunks' information about this chunk
+        chunkNeighboursLoaded.at(1)->UpdateChunkNeighbour(this, remapFaceIndex[1]);
+        chunkNeighboursLoaded.at(1)->GenerateChunkVertices(computeShaderID);
+    }
+
+    // Update back neighbour
+    if(chunkNeighboursLoaded.at(2) != nullptr){
+
+        // Update this chunks information about the neighbouring chunk
+        UpdateChunkNeighbour(chunkNeighboursLoaded.at(2), 2);
+
+        // Update the neighbouring chunks' information about this chunk
+        chunkNeighboursLoaded.at(2)->UpdateChunkNeighbour(this, remapFaceIndex[2]);
+        chunkNeighboursLoaded.at(2)->GenerateChunkVertices(computeShaderID);
+    }
+
+    // Update left neighbour
+    if(chunkNeighboursLoaded.at(3) != nullptr){
+
+        // Update this chunks information about the neighbouring chunk
+        UpdateChunkNeighbour(chunkNeighboursLoaded.at(3), 3);
+
+        // Update the neighbouring chunks' information about this chunk
+        chunkNeighboursLoaded.at(3)->UpdateChunkNeighbour(this, remapFaceIndex[3]);
+        chunkNeighboursLoaded.at(3)->GenerateChunkVertices(computeShaderID);
+    }
+
+    // Update bottom neighbour
+    if(chunkNeighboursLoaded.at(4) != nullptr){
+
+        // Update this chunks information about the neighbouring chunk
+        UpdateChunkNeighbour(chunkNeighboursLoaded.at(4), 4);
+
+        // Update the neighbouring chunks' information about this chunk
+        chunkNeighboursLoaded.at(4)->UpdateChunkNeighbour(this, remapFaceIndex[4]);
+        chunkNeighboursLoaded.at(4)->GenerateChunkVertices(computeShaderID);
+    }
+
+    // Update top neighbour
+    if(chunkNeighboursLoaded.at(5) != nullptr){
+
+        // Update this chunks information about the neighbouring chunk
+        UpdateChunkNeighbour(chunkNeighboursLoaded.at(5), 5);
+
+        // Update the neighbouring chunks' information about this chunk
+        chunkNeighboursLoaded.at(5)->UpdateChunkNeighbour(this, remapFaceIndex[5]);
+        chunkNeighboursLoaded.at(5)->GenerateChunkVertices(computeShaderID);
+    }
+}
+
+// Function sets values of chunkNeighbouringFaceVoxels, which stores information on this chunk about the solidity of neighbouring chunks faces.
+void Chunk::UpdateChunkNeighbour(Chunk *chunkN, int faceIndex) {
+
+    // Array that remaps the faceIndex i.e. front face maps to back face. (normal order - front, right, back, left, bottom, top)
+    int remapFaceIndex[] = {2, 3, 0, 1, 5, 4};
+
+    std::vector<std::vector<int>> faceVec = chunkN->GetChunkFaceSolidity(remapFaceIndex[faceIndex]);
+    for(int i = 0; i < size; i++){
+        for(int j = 0; j < size; j++){
+
+            chunkNeighbouringFaceVoxels[faceIndex][i][j] = faceVec.at(i).at(j);
+        }
+    }
+}
+
+// Face Index Order: front, right, back, left, bottom, top
+// Returns the voxel solidity data for the specified face of this chunk
+std::vector<std::vector<int>> Chunk::GetChunkFaceSolidity(int faceIndex) {
+
+    std::vector<std::vector<int>> faceSolidityVec;
+    faceSolidityVec.reserve(size);
+
+    // Return front face voxel information
+    if(faceIndex == 0){
+        for(int i = 0; i < size; i++){
+
+            std::vector<int> faceSoliditySubVec;
+            faceSoliditySubVec.reserve(size);
+
+            for(int j = 0; j < size; j++){
+
+                faceSoliditySubVec.push_back((int)chunkVoxels[i][j][size-1].isSolid);
+            }
+
+            faceSolidityVec.push_back(faceSoliditySubVec);
+        }
+
+        return faceSolidityVec;
+    }
+
+    // Return right face voxel information
+    if(faceIndex == 1){
+        for(int i = 0; i < size; i++){
+
+            std::vector<int> faceSoliditySubVec;
+            faceSoliditySubVec.reserve(size);
+
+            for(int j = 0; j < size; j++){
+
+                faceSoliditySubVec.push_back((int)chunkVoxels[size-1][i][j].isSolid);
+            }
+
+            faceSolidityVec.push_back(faceSoliditySubVec);
+        }
+
+        return faceSolidityVec;
+    }
+
+    // Return back face voxel information
+    if(faceIndex == 2){
+        for(int i = 0; i < size; i++){
+
+            std::vector<int> faceSoliditySubVec;
+            faceSoliditySubVec.reserve(size);
+
+            for(int j = 0; j < size; j++){
+
+                faceSoliditySubVec.push_back((int)chunkVoxels[i][j][0].isSolid);
+            }
+
+            faceSolidityVec.push_back(faceSoliditySubVec);
+        }
+
+        return faceSolidityVec;
+    }
+
+    // Return left face voxel information
+    if(faceIndex == 3){
+        for(int i = 0; i < size; i++){
+
+            std::vector<int> faceSoliditySubVec;
+            faceSoliditySubVec.reserve(size);
+
+            for(int j = 0; j < size; j++){
+
+                faceSoliditySubVec.push_back((int)chunkVoxels[0][i][j].isSolid);
+            }
+
+            faceSolidityVec.push_back(faceSoliditySubVec);
+        }
+
+        return faceSolidityVec;
+    }
+
+    // Return bottom face voxel information
+    if(faceIndex == 4){
+        for(int i = 0; i < size; i++){
+
+            std::vector<int> faceSoliditySubVec;
+            faceSoliditySubVec.reserve(size);
+
+            for(int j = 0; j < size; j++){
+
+                faceSoliditySubVec.push_back((int)chunkVoxels[i][0][j].isSolid);
+            }
+
+            faceSolidityVec.push_back(faceSoliditySubVec);
+        }
+
+        return faceSolidityVec;
+    }
+
+    // Return top face voxel information
+    if(faceIndex == 5){
+        for(int i = 0; i < size; i++){
+
+            std::vector<int> faceSoliditySubVec;
+            faceSoliditySubVec.reserve(size);
+
+            for(int j = 0; j < size; j++){
+
+                faceSoliditySubVec.push_back((int)chunkVoxels[i][size-1][j].isSolid);
+            }
+
+            faceSolidityVec.push_back(faceSoliditySubVec);
+        }
+
+        return faceSolidityVec;
+    }
+
+    return faceSolidityVec;
+}
+
+vec3 Chunk::GetPosition() {
+
+    return position;
 }
 
 std::string Chunk::GetChunkName() {

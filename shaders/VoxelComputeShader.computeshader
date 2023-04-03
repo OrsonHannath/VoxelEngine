@@ -47,6 +47,12 @@ layout(binding = 2) buffer vertexColours_out {
     Colour vertex_colours[];
 };
 
+// Neighbouring Faces Voxel Data (int representing voxel solidity)
+layout(binding = 4) buffer neighbouring_face_voxel_data {
+
+    int neighbouring_face_voxels[];
+};
+
 // Source: OpenGL_Programming - Modern_OpenGL_Tutorial_05
 float voxel_vertices[] = {  -0.5, -0.5,  0.5,
                             0.5, -0.5,  0.5,
@@ -72,18 +78,137 @@ int voxel_faces[] = {0, 1, 2, // Front
 
 void main() {
 
-    // Get the x, y and z position of the voxel
+    // Get Voxels Index in 3D format
+    int xIndex = int(gl_WorkGroupID.x); // x will be the x value of dispatch
+    int yIndex = int(gl_LocalInvocationID.y); // y will be the y value of invocation
+    int zIndex = int(gl_LocalInvocationID.z); // z will be the z value of invocation
+    uint invocationPos = zIndex + gl_WorkGroupSize.y * (yIndex + gl_WorkGroupSize.z * xIndex);
+
+    // Set variables that hold the positional data of the voxel
+    int x = xIndex;
+    int y = yIndex;
+    int z = -zIndex;
+
+    // Check if the voxel isSolid
+    Voxel currVoxel = voxels[invocationPos];
+    if(currVoxel.isSolid == 1){
+
+        // Create an array to store if a face is solid or not. init them as 0 (false)
+        int solid_neighbour_faces[6] = {0, 0, 0, 0, 0, 0}; //front, right, back, left, bottom, top
+
+        int frontZPos = zIndex + 1;
+        if(frontZPos < gl_WorkGroupSize.z){
+
+            // frontZPos is within chunk
+            solid_neighbour_faces[0] = voxels[frontZPos + gl_WorkGroupSize.y * (yIndex + gl_WorkGroupSize.z * xIndex)].isSolid;
+        }else if(frontZPos == gl_WorkGroupSize.z){
+
+            // frontZPos is 1 voxel outside chunk border so use the neighbouring_face_voxels
+            int neighbouringFaceVoxelIndex = int(yIndex + gl_WorkGroupSize.y * (xIndex + gl_WorkGroupSize.z * 0)); // Mapping as such: x = 0, y = x, z = y
+            solid_neighbour_faces[0] = neighbouring_face_voxels[neighbouringFaceVoxelIndex];
+        }
+
+        int backZPos = zIndex - 1;
+        if(backZPos >= 0){
+            solid_neighbour_faces[2] = voxels[backZPos + gl_WorkGroupSize.y * (yIndex + gl_WorkGroupSize.z * xIndex)].isSolid;
+        }else if(backZPos == -1){
+
+            // backZPos is 1 voxel outside chunk border so use the neighbouring_face_voxels
+            int neighbouringFaceVoxelIndex = int(yIndex + gl_WorkGroupSize.y * (xIndex + gl_WorkGroupSize.z * 2)); // Mapping as such: x = 2, y = x, z = y
+            solid_neighbour_faces[2] = neighbouring_face_voxels[neighbouringFaceVoxelIndex];
+        }
+
+        int leftXPos = xIndex - 1;
+        if(leftXPos >= 0){
+            solid_neighbour_faces[3] = voxels[zIndex + gl_WorkGroupSize.y * (yIndex + gl_WorkGroupSize.z * leftXPos)].isSolid;
+        }else if(leftXPos == -1){
+
+            // leftXPos is 1 voxel outside chunk border so use the neighbouring_face_voxels
+            int neighbouringFaceVoxelIndex = int(zIndex + gl_WorkGroupSize.y * (yIndex + gl_WorkGroupSize.z * 3)); // Mapping as such: x = 3, y = y, z = z
+            solid_neighbour_faces[3] = neighbouring_face_voxels[neighbouringFaceVoxelIndex];
+        }
+
+        int rightXPos = xIndex + 1;
+        if(rightXPos < gl_NumWorkGroups.x){
+            solid_neighbour_faces[1] = voxels[zIndex + gl_WorkGroupSize.y * (yIndex + gl_WorkGroupSize.z * rightXPos)].isSolid;
+        }else if(rightXPos == gl_NumWorkGroups.x){
+
+            // rightXPos is 1 voxel outside chunk border so use the neighbouring_face_voxels
+            int neighbouringFaceVoxelIndex = int(zIndex + gl_WorkGroupSize.y * (yIndex + gl_WorkGroupSize.z * 1)); // Mapping as such: x = 1, y = y, z = z
+            solid_neighbour_faces[1] = neighbouring_face_voxels[neighbouringFaceVoxelIndex];
+        }
+
+        int botYPos = yIndex - 1;
+        if(botYPos >= 0){
+            solid_neighbour_faces[4] = voxels[zIndex + gl_WorkGroupSize.y * (botYPos + gl_WorkGroupSize.z * xIndex)].isSolid;
+        }else if(botYPos == -1){
+
+            // botYPos is 1 voxel outside chunk border so use the neighbouring_face_voxels
+            int neighbouringFaceVoxelIndex = int(zIndex + gl_WorkGroupSize.y * (xIndex + gl_WorkGroupSize.z * 4)); // Mapping as such: x = 4, y = x, z = z
+            solid_neighbour_faces[4] = neighbouring_face_voxels[neighbouringFaceVoxelIndex];
+        }
+
+        int topYPos = yIndex + 1;
+        if(topYPos < gl_WorkGroupSize.y){
+            solid_neighbour_faces[5] = voxels[zIndex + gl_WorkGroupSize.y * (topYPos + gl_WorkGroupSize.z * xIndex)].isSolid;
+        }else if(topYPos == gl_WorkGroupSize.y){
+
+            // topYPos is 1 voxel outside chunk border so use the neighbouring_face_voxels
+            int neighbouringFaceVoxelIndex = int(zIndex + gl_WorkGroupSize.y * (xIndex + gl_WorkGroupSize.z * 5)); // Mapping as such: x = 5, y = x, z = z
+            solid_neighbour_faces[5] = neighbouring_face_voxels[neighbouringFaceVoxelIndex];
+        }
+
+        int faceIndex = 0;
+        for(int i = 0; i < 36; i++){
+
+            int vertexIndex = voxel_faces[i] * 3;
+
+            // Check if we should update faceIndex
+            if((i - (6 * floor(i/6))) == 0){
+                faceIndex = i/6;
+            }
+
+            // Check if this face should be rendered
+            if(solid_neighbour_faces[faceIndex] == 0){
+                Vertex v;
+                v.x = voxel_vertices[vertexIndex] + chunk[0].pos.x + x;
+                v.y = voxel_vertices[vertexIndex+1] + chunk[0].pos.y + y;
+                v.z = voxel_vertices[vertexIndex+2] + chunk[0].pos.z + zIndex; // These are being made too positive
+
+                Colour c;
+                c.r = currVoxel.voxType/255.0f;
+                c.g = currVoxel.voxType/255.0f;
+                c.b = currVoxel.voxType/255.0f;
+                c.a = currVoxel.voxType/255.0f;
+
+                int vertexBufferPos = int((invocationPos * 36) + i);
+                vertices[vertexBufferPos] = v;
+                vertex_colours[vertexBufferPos] = c;
+            }
+        }
+    }
+
+    /*// Get the x, y and z position of the voxel
     int x = int(gl_WorkGroupID.x); // x will be the x value of dispatch
     int y = int(gl_LocalInvocationID.y); // y will be the y value of invocation
     int z = int(gl_LocalInvocationID.z); // z will be the z value of invocation
+
+    //int z = int(gl_WorkGroupID.x); // x will be the x value of dispatch
+    //int y = int(gl_LocalInvocationID.y); // y will be the y value of invocation
+    //int x = int(gl_LocalInvocationID.z); // z will be the z value of invocation
 
     // Determine this voxels world space location
     float xWS = chunk[0].pos.x + (x - ceil(gl_NumWorkGroups.x / 2.0));
     float yWS = chunk[0].pos.y + (y - ceil(gl_WorkGroupSize.y / 2.0));
     float zWS = chunk[0].pos.z + (z - ceil(gl_WorkGroupSize.z / 2.0));
 
+    //float zWS = chunk[0].pos.x + (z - ceil(gl_NumWorkGroups.x / 2.0));
+    //float yWS = chunk[0].pos.y + (y - ceil(gl_WorkGroupSize.y / 2.0));
+    //float xWS = chunk[0].pos.z + (x - ceil(gl_WorkGroupSize.z / 2.0));
+
     // The flattened position of the current invocation
     uint invocationPos = x + gl_WorkGroupSize.y * (y + gl_WorkGroupSize.z * z);
+    //uint invocationPos = z + gl_WorkGroupSize.z * (y + gl_NumWorkGroups.x * x);
 
     // Check if the voxel isSolid
     Voxel currVoxel = voxels[invocationPos];
@@ -97,36 +222,42 @@ void main() {
         int frontZPos = z + 1;
         if(frontZPos < gl_WorkGroupSize.z){
             frontSolid = voxels[int((x) + gl_WorkGroupSize.y * ((y) + gl_WorkGroupSize.z * (frontZPos)))].isSolid;
+            //frontSolid = voxels[int((x) + gl_WorkGroupSize.y * ((y) + gl_NumWorkGroups.x * (frontZPos)))].isSolid;
         }
 
         int backSolid = 0;
         int backZPos = z - 1;
         if(backZPos >= 0){
             backSolid = voxels[int((x) + gl_WorkGroupSize.y * ((y) + gl_WorkGroupSize.z * (backZPos)))].isSolid;
+            //backSolid = voxels[int((x) + gl_WorkGroupSize.y * ((y) + gl_NumWorkGroups.x * (backZPos)))].isSolid;
         }
 
         int leftSolid = 0;
         int leftXPos = x - 1;
         if(leftXPos >= 0){
             leftSolid = voxels[int((leftXPos) + gl_WorkGroupSize.y * ((y) + gl_WorkGroupSize.z * (z)))].isSolid;
+            //leftSolid = voxels[int((leftXPos) + gl_WorkGroupSize.y * ((y) + gl_NumWorkGroups.x * (z)))].isSolid;
         }
 
         int rightSolid = 0;
         int rightXPos = x + 1;
         if(rightXPos < gl_NumWorkGroups.x){
             rightSolid = voxels[int((rightXPos) + gl_WorkGroupSize.y * ((y) + gl_WorkGroupSize.z * (z)))].isSolid;
+            //rightSolid = voxels[int((rightXPos) + gl_WorkGroupSize.y * ((y) + gl_NumWorkGroups.x * (z)))].isSolid;
         }
 
         int botSolid = 0;
         int botYPos = y - 1;
         if(botYPos >= 0){
             botSolid = voxels[int((x) + gl_WorkGroupSize.y * ((botYPos) + gl_WorkGroupSize.z * (z)))].isSolid;
+            //botSolid = voxels[int((x) + gl_WorkGroupSize.y * ((botYPos) + gl_NumWorkGroups.x * (z)))].isSolid;
         }
 
         int topSolid = 0;
         int topYPos = y + 1;
         if(topYPos < gl_WorkGroupSize.y){
             topSolid = voxels[int((x) + gl_WorkGroupSize.y * ((topYPos) + gl_WorkGroupSize.z * (z)))].isSolid;
+            //topSolid = voxels[int((x) + gl_WorkGroupSize.y * ((topYPos) + gl_NumWorkGroups.x * (z)))].isSolid;
         }
 
         // Generate the Front Face (voxel_faces: 0, 1)
@@ -272,5 +403,5 @@ void main() {
                 vertex_colours[vertexBufferPos] = c;
             }
         }
-    }
+    }*/
 }

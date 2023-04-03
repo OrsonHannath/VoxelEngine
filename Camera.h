@@ -18,7 +18,7 @@ private:
     float horizontalAngle = 3.14f;
     float verticalAngle = 0.0f;
     int fov = 60;
-    float speed = 10.0f;
+    float speed = 25.0f;
     float mouseSpeed = 0.5f;
 
     mat4 projection;

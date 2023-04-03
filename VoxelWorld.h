@@ -12,19 +12,22 @@
 
 class VoxelWorld {
 private:
-    std::map<std::string, Chunk*> chunksMap;
-    std::map<std::string, std::vector<VertexStruct>> chunksVertexBufferMap;
-    std::map<std::string, std::vector<ColourStruct>> chunksColourBufferMap;
+    std::map<std::tuple<float, float, float>, Chunk*> chunksMap;
+    std::map<std::tuple<float, float, float>, bool> loadedChunks; // Stores whether a chunk is loaded mapped using the key of the chunks name (could optimize key)
+    std::map<std::tuple<float, float, float>, std::vector<VertexStruct>> chunksVertexBufferMap;
+    std::map<std::tuple<float, float, float>, std::vector<ColourStruct>> chunksColourBufferMap;
     GLuint voxelComputeProgramID;
 public:
     VoxelWorld();
 
     void SetComputeProgramID(GLuint voxelComputeProgramID_);
     void AddChunk(Chunk* chunk);
-    void LoadChunk(std::string chunkName);
+    void LoadChunk(vec3 chunkPos);
+    void UnloadChunk(vec3 chunkPos);
 
-    std::map<std::string, Chunk*> GetChunksMap();
-    Chunk* GetChunk(std::string name_);
+    std::map<std::tuple<float, float, float>, Chunk*> GetChunksMap();
+    std::vector<Chunk*> CheckNeighbouringChunksLoaded(vec3 chunkPos);
+    Chunk* GetChunk(vec3 chunkPos);
 };
 
 

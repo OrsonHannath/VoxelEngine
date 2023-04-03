@@ -182,6 +182,13 @@ build CMakeFiles/VoxelEngine.dir/Structures.cpp.obj: CXX_COMPILER__VoxelEngine_D
   OBJECT_DIR = CMakeFiles\VoxelEngine.dir
   OBJECT_FILE_DIR = CMakeFiles\VoxelEngine.dir
 
+build CMakeFiles/VoxelEngine.dir/PerlinNoise.cpp.obj: CXX_COMPILER__VoxelEngine_Debug C$:/Users/User/Desktop/Portfolio/VoxelEngine/PerlinNoise.cpp || cmake_object_order_depends_target_VoxelEngine
+  DEP_FILE = CMakeFiles\VoxelEngine.dir\PerlinNoise.cpp.obj.d
+  FLAGS = -g -std=gnu++14
+  INCLUDES = -IC:/libs/GLEW/include/GL -IC:/libs/GLFW/include/GLFW -IC:/libs/GLM
+  OBJECT_DIR = CMakeFiles\VoxelEngine.dir
+  OBJECT_FILE_DIR = CMakeFiles\VoxelEngine.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target VoxelEngine
@@ -190,7 +197,7 @@ build CMakeFiles/VoxelEngine.dir/Structures.cpp.obj: CXX_COMPILER__VoxelEngine_D
 #############################################
 # Link the executable VoxelEngine.exe
 
-build VoxelEngine.exe: CXX_EXECUTABLE_LINKER__VoxelEngine_Debug CMakeFiles/VoxelEngine.dir/main.cpp.obj CMakeFiles/VoxelEngine.dir/Colour.cpp.obj CMakeFiles/VoxelEngine.dir/ColourRandomizer.cpp.obj CMakeFiles/VoxelEngine.dir/DeltaTime.cpp.obj CMakeFiles/VoxelEngine.dir/Enumerators.cpp.obj CMakeFiles/VoxelEngine.dir/Random.cpp.obj CMakeFiles/VoxelEngine.dir/OpenGLApp.cpp.obj CMakeFiles/VoxelEngine.dir/Scene.cpp.obj CMakeFiles/VoxelEngine.dir/Camera.cpp.obj CMakeFiles/VoxelEngine.dir/Object.cpp.obj CMakeFiles/VoxelEngine.dir/Triangle.cpp.obj CMakeFiles/VoxelEngine.dir/RenderObject.cpp.obj CMakeFiles/VoxelEngine.dir/SceneManager.cpp.obj CMakeFiles/VoxelEngine.dir/TestingScene.cpp.obj CMakeFiles/VoxelEngine.dir/Cube.cpp.obj CMakeFiles/VoxelEngine.dir/Chunk.cpp.obj CMakeFiles/VoxelEngine.dir/VoxelWorld.cpp.obj CMakeFiles/VoxelEngine.dir/Voxel.cpp.obj CMakeFiles/VoxelEngine.dir/Structures.cpp.obj
+build VoxelEngine.exe: CXX_EXECUTABLE_LINKER__VoxelEngine_Debug CMakeFiles/VoxelEngine.dir/main.cpp.obj CMakeFiles/VoxelEngine.dir/Colour.cpp.obj CMakeFiles/VoxelEngine.dir/ColourRandomizer.cpp.obj CMakeFiles/VoxelEngine.dir/DeltaTime.cpp.obj CMakeFiles/VoxelEngine.dir/Enumerators.cpp.obj CMakeFiles/VoxelEngine.dir/Random.cpp.obj CMakeFiles/VoxelEngine.dir/OpenGLApp.cpp.obj CMakeFiles/VoxelEngine.dir/Scene.cpp.obj CMakeFiles/VoxelEngine.dir/Camera.cpp.obj CMakeFiles/VoxelEngine.dir/Object.cpp.obj CMakeFiles/VoxelEngine.dir/Triangle.cpp.obj CMakeFiles/VoxelEngine.dir/RenderObject.cpp.obj CMakeFiles/VoxelEngine.dir/SceneManager.cpp.obj CMakeFiles/VoxelEngine.dir/TestingScene.cpp.obj CMakeFiles/VoxelEngine.dir/Cube.cpp.obj CMakeFiles/VoxelEngine.dir/Chunk.cpp.obj CMakeFiles/VoxelEngine.dir/VoxelWorld.cpp.obj CMakeFiles/VoxelEngine.dir/Voxel.cpp.obj CMakeFiles/VoxelEngine.dir/Structures.cpp.obj CMakeFiles/VoxelEngine.dir/PerlinNoise.cpp.obj
   FLAGS = -g
   LINK_FLAGS = -static
   LINK_LIBRARIES = -lglfw3  -lglew32  -lopengl32  -static-libgcc  -static-libstdc++  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32

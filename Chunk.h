@@ -16,21 +16,31 @@
 #include "RenderObject.h"
 #include "Voxel.h"
 #include "Structures.h"
+#include "PerlinNoise.h"
 
 class Chunk {
 private:
     vec3 position;
     static const int size = 16;
-    std::map<std::string, Voxel> voxelMap;
-    std::vector<VertexStruct> verticesVec; // Probably don't need to store here
-    std::vector<ColourStruct> vertexColoursVec; // Probably don't need to store here
+    VoxelStruct chunkVoxels[size][size][size];
+    std::vector<VertexStruct> verticesVec; // Probably don't need to store here (31/03/23)
+    std::vector<ColourStruct> vertexColoursVec; // Probably don't need to store here (31/03/23)
     RenderObject* renderObject;
+
+    // Neighbours Voxels Information
+    int chunkNeighbouringFaceVoxels[6][size][size] = {0}; // Voxel solidity information for each neighbouring face (front, right, back, left, bottom, top)
 public:
     Chunk(vec3 position_);
 
-    void GenerateChunkVertices(GLuint computeShaderID); // Should expand this to be based on noise
+    void GenerateChunkVertices(GLuint computeShaderID);
+    void GenerateChunkVoxels();
+    void UpdateChunkNeighbour(Chunk* chunkN, int faceIndex);
+    void UpdateChunksNeighbours(std::vector<Chunk*> chunkNeighbours, GLuint computeShaderID);
+
+    vec3 GetPosition();
     std::string GetChunkName();
     RenderObject* GetRenderObject();
+    std::vector<std::vector<int>> GetChunkFaceSolidity(int faceIndex); // Index Order: front, right, back, left, bottom, top
 };
 
 

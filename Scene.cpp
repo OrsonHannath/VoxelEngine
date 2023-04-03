@@ -95,10 +95,10 @@ void Scene::RenderScene(float* deltaTimePtr) {
         std::vector<ColourStruct> object_colour_buffer = renderObject->GetVertexColourData();
 
         // Calculate how many vertices should be drawn
-        int vertsToDraw = object_vertex_buffer.size() * 3;
+        int vertsToDraw = object_vertex_buffer.size();
 
-        // Voxel Debugging
-        for(int i = 0; i < (object_vertex_buffer.size() / sizeof(vertexBuffer)) / 12; i++){
+        // Voxel Face Triangle Positional Debugging
+        /*for(int i = 0; i < (object_vertex_buffer.size() / sizeof(vertexBuffer)) / 12; i++){
 
             float xTotal = 0;
             float yTotal = 0;
@@ -111,7 +111,13 @@ void Scene::RenderScene(float* deltaTimePtr) {
             }
 
             //std::cout << "[" << xTotal/12.0f << ", " << yTotal/12.0f << ", " << zTotal/12.0f << "]" << std::endl;
-        }
+        }*/
+
+        // Voxel Vertices Debugging
+        /*for(int i = 0; i < (object_vertex_buffer.size() / sizeof(vertexBuffer)); i++){
+
+            std::cout << object_vertex_buffer[i].toString() << std::endl;
+        }*/
 
         // Update the MVPMatrix and ModelMatrix
         renderObject->SetMVPMatrix(camera->GenerateMVPMatrix());
