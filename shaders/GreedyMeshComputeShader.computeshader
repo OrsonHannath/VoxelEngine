@@ -54,8 +54,8 @@ void greedyMeshFaces(int x, int y, int z, int storedPos, int chainLength, int fa
     Vertex stored_vertices[6];
     Vertex curr_vertices[6];
 
-    // Apply Greedy Meshing to a Front or Back Face
-    if(faceIndex == 0 || faceIndex == 2){
+    // Apply Greedy Meshing to a Front, Back, Left or Right Face
+    if(faceIndex == 0 || faceIndex == 2 || faceIndex == 3 || faceIndex == 1){
 
         // Remove all of the old vertices and store the vertex information of the storedFace and the face it leads to
         for(int i = storedPos; i <= storedPos + chainLength; i++){
@@ -102,6 +102,78 @@ void greedyMeshFaces(int x, int y, int z, int storedPos, int chainLength, int fa
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 4] = stored_vertices[4];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 5] = curr_vertices[5];
         }
+
+        // Left Face Greedy Meshing Alterations
+        if(faceIndex == 3){
+            int storedInvocationPos = int(z + 16 * ((storedPos) + 16 * x));
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 0] = stored_vertices[0];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 1] = stored_vertices[1];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 2] = curr_vertices[2];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 3] = curr_vertices[3];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 4] = curr_vertices[4];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 5] = stored_vertices[5];
+        }
+
+        // Right Face Greedy Meshing Alterations
+        if(faceIndex == 1){
+            int storedInvocationPos = int(z + 16 * ((storedPos) + 16 * x));
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 0] = stored_vertices[0];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 1] = stored_vertices[1];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 2] = curr_vertices[2];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 3] = curr_vertices[3];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 4] = curr_vertices[4];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 5] = stored_vertices[5];
+        }
+    }
+
+    // Apply Greedy Meshing to a Top or Bottom Face
+    if(faceIndex == 5 || faceIndex == 4){
+
+        // Remove all of the old vertices and store the vertex information of the storedFace and the face it leads to
+        for(int i = storedPos; i <= storedPos + chainLength; i++){
+            for(int j = (faceIndex * 6); j < (faceIndex * 6) + 6; j++){
+
+                // Determine the invocation position of the current face
+                int currInvPos = int(i + 16 * (y + 16 * x));
+
+                // Check if we should be updating the stored_vertices
+                if(i == storedPos){
+                    int index = j - (faceIndex * 6);
+                    stored_vertices[index] = vertices[(currInvPos * 36) + j];
+                }
+
+                // Check if we should be updating the curr_vertices
+                if(i == storedPos + chainLength){
+                    int index = j - (faceIndex * 6);
+                    curr_vertices[index] = vertices[(currInvPos * 36) + j];
+                }
+
+                Vertex blankV = {0, 0, 0};
+                vertices[(currInvPos * 36) + j] = blankV;
+            }
+        }
+
+        // Top Face Greedy Meshing Alterations
+        if(faceIndex == 5){
+            int storedInvocationPos = int((storedPos) + 16 * (y + 16 * x));
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 0] = curr_vertices[0];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 1] = curr_vertices[1];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 2] = stored_vertices[2];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 3] = stored_vertices[3];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 4] = stored_vertices[4];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 5] = curr_vertices[5];
+        }
+
+        // Bottom Face Greedy Meshing Alterations
+        if(faceIndex == 4){
+            int storedInvocationPos = int((storedPos) + 16 * (y + 16 * x));
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 0] = stored_vertices[0];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 1] = stored_vertices[1];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 2] = curr_vertices[2];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 3] = curr_vertices[3];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 4] = curr_vertices[4];
+            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 5] = stored_vertices[5];
+        }
     }
 }
 
@@ -121,266 +193,124 @@ void main(){
             // Current Face Index (Dispatch Position)
             int faceIndex = int(gl_WorkGroupID.x); // xIndex (dispatchIndex) refers to the face direction which is currently being greedy meshed
 
-            // Setup coordinates
-            int x = i;
-            int y = j;
-            int z = int(gl_LocalInvocationID.z);
+            // Vertical Greedy Meshing Logic
+            if(faceIndex == 0 || faceIndex == 2 || faceIndex == 3 || faceIndex == 1 || faceIndex == 5 || faceIndex == 4){
 
-            // Get the position of the current voxel
-            int invocationPos = int(z + 16 * (y + 16 * x)); // Voxels flattened position
-            Voxel currVoxel = voxels[invocationPos];
+                // Setup coordinate variables
+                int x;
+                int y;
+                int z;
 
-            // Determine whether this face is currently being rendered
-            bool faceRendering = false;
-            vec3 prevFaceVertexPosition;
-            for(int l = (faceIndex * 6); l < (faceIndex * 6) + 6; l++){
-
-                int currInvPos = int(z + 16 * (y + 16 * x));
-                if(vec3(vertices[(currInvPos * 36) + l].x, vertices[(currInvPos * 36) + l].y, vertices[(currInvPos * 36) + l].z) != prevFaceVertexPosition){
-
-                    faceRendering = true;
-                    break;
+                // Setup coordinates - Front, Back, Left and Right Faces
+                if(faceIndex == 0 || faceIndex == 2 || faceIndex == 3 || faceIndex == 1){
+                    x = i;
+                    y = j;
+                    z = int(gl_LocalInvocationID.z);
                 }
-               prevFaceVertexPosition = vec3(vertices[(currInvPos * 36) + l].x, vertices[(currInvPos * 36) + l].y, vertices[(currInvPos * 36) + l].z);
-            }
 
-            // Check if a faces voxel information is currently stored or not
-            if(stored == false){
-
-                // Check if the current face is being rendered
-                if(faceRendering == true){
-
-                    // Since the face is rendering update the stored face information to reflect this faces data
-                    storedPos = y;
-                    storedType = currVoxel.voxType;
-                    chainLength = 0;
-                    stored = true;
-                    continue;
-                }else{
-
-                    // Since the face is not rendering don't do anything during this iteration
-                    continue;
+                // Setup coordinates - Top and Bottom
+                if(faceIndex == 5 || faceIndex == 4){
+                    x = i;
+                    y = int(gl_LocalInvocationID.z);
+                    z = j;
                 }
-            }
 
-            // Check if the current face's voxel type is the same as the stored face's voxel type
-            if(currVoxel.voxType == storedType){
+                // Get the position of the current voxel
+                int invocationPos = int(z + 16 * (y + 16 * x)); // Voxels flattened position
+                Voxel currVoxel = voxels[invocationPos];
 
-                // Check if the face is currently rendering
-                if(faceRendering == true){
+                // Determine whether this face is currently being rendered
+                bool faceRendering = false;
+                vec3 prevFaceVertexPosition;
+                for(int l = (faceIndex * 6); l < (faceIndex * 6) + 6; l++){
 
-                    // Check if it is the last iteration of this subsection of loop
-                    if(j == 15){
+                    if(vec3(vertices[(invocationPos * 36) + l].x, vertices[(invocationPos * 36) + l].y, vertices[(invocationPos * 36) + l].z) != prevFaceVertexPosition){
 
-                        // Since this is the last sub-loop apply increment chainLength to account for this face then greedy meshing
-                        chainLength++;
-                        greedyMeshFaces(x, y, z, storedPos, chainLength, faceIndex);
-                    }else{
-
-                        // Since this isn't last iteration of sub-loop increase chainLength and go to next iteration of loop
-                        chainLength++;
-                        continue;
+                        faceRendering = true;
+                        break;
                     }
-                }else{
-
-                    // Since the face isn't rendering check if the chainLength is greater than 0 to see if meshing must be done
-                    if(chainLength > 0){
-
-                        // Length is greater than 0 so should apply greedy meshing
-                        greedyMeshFaces(x, y, z, storedPos, chainLength, faceIndex);
-                    }
-
-                    // Set stored to false since this face isn't rendering and reset all stored data
-                    storedPos = 0;
-                    storedType = 0;
-                    chainLength = 0;
-                    stored = false;
+                   prevFaceVertexPosition = vec3(vertices[(invocationPos * 36) + l].x, vertices[(invocationPos * 36) + l].y, vertices[(invocationPos * 36) + l].z);
                 }
-            }else{
 
-                // since voxel types are not the same check if the chainLength is greater than 0 to see if meshing must be done
-                if(chainLength > 0){
+                // Check if a faces voxel information is currently stored or not
+                if(stored == false){
 
-                    // Length is greater than 0 so should apply greedy meshing
-                    greedyMeshFaces(x, y, z, storedPos, chainLength, faceIndex); // This causes issues when 1 high step
+                    // Check if the current face is being rendered
+                    if(faceRendering == true){
 
-                    // Check if the face is rendering
-                    if(faceRendering){
-
-                        // Face is rendering so update all stored variables with this faces data
-                        storedPos = y;
+                        // Since the face is rendering update the stored face information to reflect this faces data
+                        storedPos = j;
                         storedType = currVoxel.voxType;
                         chainLength = 0;
                         stored = true;
+                        continue;
                     }else{
 
-                        // Since face isn't rendering set stored to false and reset all stored data
+                        // Since the face is not rendering don't do anything during this iteration
+                        continue;
+                    }
+                }
+
+                // Check if the current face's voxel type is the same as the stored face's voxel type
+                if(currVoxel.voxType == storedType){
+
+                    // Check if the face is currently rendering
+                    if(faceRendering == true){
+
+                        // Check if it is the last iteration of this subsection of loop
+                        if(j == 15){
+
+                            // Since this is the last sub-loop apply increment chainLength to account for this face then greedy meshing
+                            chainLength++;
+                            greedyMeshFaces(x, y, z, storedPos, chainLength, faceIndex);
+                        }else{
+
+                            // Since this isn't last iteration of sub-loop increase chainLength and go to next iteration of loop
+                            chainLength++;
+                            continue;
+                        }
+                    }else{
+
+                        // Since the face isn't rendering check if the chainLength is greater than 0 to see if meshing must be done
+                        if(chainLength > 0){
+
+                            // Length is greater than 0 so should apply greedy meshing
+                            greedyMeshFaces(x, y, z, storedPos, chainLength, faceIndex);
+                        }
+
+                        // Set stored to false since this face isn't rendering and reset all stored data
                         storedPos = 0;
                         storedType = 0;
                         chainLength = 0;
                         stored = false;
                     }
-                }
-            }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            /*// Current Face Index (Dispatch Position)
-            int faceIndex = int(gl_WorkGroupID.x); // xIndex (dispatchIndex) refers to the face direction which is currently being greedy meshed
-
-            // Setup coordinates
-            int x = i;
-            int y = j;
-            int z = int(gl_LocalInvocationID.z);
-
-            // Get the position of the current voxel
-            int invocationPos = int(z + 16 * (y + 16 * x)); // Voxels flattened position
-            Voxel currVoxel = voxels[invocationPos];
-
-            // If this is first iteration set the new storedVoxelType, storedIndex, storedVoxelLength
-            if(y == 0){
-                storedVoxelType = 0;
-                storedVoxelIndex = 0;
-                storedVoxelChainLength = 0;
-            }
-
-            // If the voxel type is air (0) then update storedVoxelType, storedIndex, storedVoxelLength and continue
-            if(currVoxel.voxType == 0 && storedVoxelChainLength <= 0){
-                storedVoxelType = 0;
-                storedVoxelIndex = y;
-                storedVoxelChainLength = 0;
-                continue;
-            }
-
-            // If the voxel is not solid then update storedVoxelType, storedIndex, storedVoxelLength and continue
-            if(currVoxel.isSolid == 0 && storedVoxelChainLength <= 0){
-                storedVoxelType = 0;
-                storedVoxelIndex = y;
-                storedVoxelChainLength = 0;
-                continue;
-            }
-
-            // Check if this face of the voxel is being displayed
-            vec3 totalPosition;
-            for(int p = 0; p < 6; p++){
-                int invocationID = (int(z + 16 * (y + 16 * x)) * 36) + (faceIndex * 6) + p;
-                totalPosition.x += vertices[invocationID].x;
-                totalPosition.y += vertices[invocationID].y;
-                totalPosition.z += vertices[invocationID].z;
-            }
-
-            // If the voxels face isn't being rendered then update storedVoxelType, storedIndex, storedVoxelLength and continue
-            if(totalPosition.x == 0 && totalPosition.y == 0 && totalPosition.z == 0){
-                storedVoxelType = 0;
-                storedVoxelIndex = y;
-                storedVoxelChainLength = 0;
-                continue;
-            }
-
-            // If this is the last iteration just continue
-            if(y == 15 && storedVoxelChainLength == 0){
-                continue;
-            }
-
-            // If the voxel type is the same as the stored voxel type update storedVoxelLength and continue
-            if(currVoxel.voxType == storedVoxelType){
-                storedVoxelChainLength++;
-            }
-
-            // Check if the current voxel face type is different to the stored
-            if(storedVoxelType != currVoxel.voxType || (y == 15 && storedVoxelChainLength > 0) || (currVoxel.isSolid == 0 && storedVoxelChainLength > 0)){
-
-                // Check if the stored chain length is greater than 0
-                if(storedVoxelChainLength > 0){
-
-                    // Store the current and stored face vertex information
-                    Vertex stored_vertices[6];
-                    Vertex curr_vertices[6];
-
-                    // The voxel chain is longer than 0 therefor must apply greedy meshing to the faces in the chain
-                    if(faceIndex == 0 || faceIndex == 2){ // Front and Back Faces
-
-                        for(int p = storedVoxelIndex; p <= storedVoxelIndex + storedVoxelChainLength; p++){
-                            for(int q = (faceIndex * 6); q < (faceIndex * 6) + 6; q++){
-
-                                int currInvPos = int(z + 16 * (p + 16 * x));
-
-                                // Check if we should be updating the stored_vertices
-                                if(p == storedVoxelIndex){
-                                    int index = q - (faceIndex * 6);
-                                    stored_vertices[index] = vertices[(currInvPos * 36) + q];
-                                }
-
-                                // Check if we should be updating the curr_vertices
-                                if(p == storedVoxelIndex + storedVoxelChainLength){
-                                    int index = q - (faceIndex * 6);
-                                    curr_vertices[index] = vertices[(currInvPos * 36) + q];
-                                }
-
-                                // Wipe the vertex
-                                Vertex v = {0, 0, 0};
-                                vertices[(currInvPos * 36) + q] = v;
-                            }
-                        }
-
-                        if(faceIndex == 0){
-
-                            // This breaks pretty badly once there a faces that are only rendering as 1 thick
-
-                            // Front Face Greedy Meshing Alterations
-                            int storedInvocationPos = int(z + 16 * ((y - storedVoxelChainLength) + 16 * x));
-                            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 0] = stored_vertices[0];
-                            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 1] = stored_vertices[1];
-                            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 2] = curr_vertices[2];
-                            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 3] = curr_vertices[3];
-                            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 4] = curr_vertices[4];
-                            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 5] = stored_vertices[5];
-                        }else if(faceIndex == 2){
-
-                            // Front Face Greedy Meshing Alterations
-                            int storedInvocationPos = int(z + 16 * ((y - storedVoxelChainLength) + 16 * x));
-                            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 0] = curr_vertices[0];
-                            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 1] = curr_vertices[1];
-                            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 2] = stored_vertices[2];
-                            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 3] = stored_vertices[3];
-                            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 4] = stored_vertices[4];
-                            vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 5] = curr_vertices[5];
-                        }
-                    }
-
-                    // Now that the greedy meshing has been applied update storedVoxelType, storedIndex, storedVoxelLength and continue
-                    storedVoxelType = currVoxel.voxType;
-                    storedVoxelIndex = y;
-                    storedVoxelChainLength = 0;
                 }else{
 
-                    // The voxel chain is not greater than 0 voxel so update storedVoxelType, storedIndex, storedVoxelLength and continue
-                    storedVoxelType = currVoxel.voxType;
-                    storedVoxelIndex = y;
-                    storedVoxelChainLength = 0;
+                    // since voxel types are not the same check if the chainLength is greater than 0 to see if meshing must be done
+                    if(chainLength > 0){
+
+                        // Length is greater than 0 so should apply greedy meshing
+                        greedyMeshFaces(x, y, z, storedPos, chainLength, faceIndex);
+
+                        // Check if the face is rendering
+                        if(faceRendering){
+
+                            // Face is rendering so update all stored variables with this faces data
+                            storedPos = j;
+                            storedType = currVoxel.voxType;
+                            chainLength = 0;
+                            stored = true;
+                        }else{
+
+                            // Since face isn't rendering set stored to false and reset all stored data
+                            storedPos = 0;
+                            storedType = 0;
+                            chainLength = 0;
+                            stored = false;
+                        }
+                    }
                 }
-            }*/
-
-            /*// TESTING - Remove all faces here
-            for(int q = (faceIndex * 6); q < (faceIndex * 6) + 6; q++){
-
-                int currInvPos = int(z + 16 * (y + 16 * x));
-
-                // Wipe the vertex
-                Vertex v = {0, 0, 0};
-                vertices[(currInvPos * 36) + q] = v;
-            }*/
+            }
         }
     }
 }

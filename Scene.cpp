@@ -157,8 +157,8 @@ void Scene::RenderScene(float* deltaTimePtr) {
                 (void*)0                          // array buffer offset
         );
 
-        glDrawArrays(GL_LINES, 0, vertsToDraw);
-        //glDrawArrays(GL_TRIANGLES, 0, vertsToDraw);
+        //glDrawArrays(GL_LINES, 0, vertsToDraw);
+        glDrawArrays(GL_TRIANGLES, 0, vertsToDraw);
     }
 }
 
