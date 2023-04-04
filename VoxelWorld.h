@@ -17,10 +17,12 @@ private:
     std::map<std::tuple<float, float, float>, std::vector<VertexStruct>> chunksVertexBufferMap;
     std::map<std::tuple<float, float, float>, std::vector<ColourStruct>> chunksColourBufferMap;
     GLuint voxelComputeProgramID;
+    GLuint greedyMeshComputeProgramID;
 public:
     VoxelWorld();
 
     void SetComputeProgramID(GLuint voxelComputeProgramID_);
+    void SetGreedyMeshingComputeProgramID(GLuint greedyMeshComputeProgramID_);
     void AddChunk(Chunk* chunk);
     void LoadChunk(vec3 chunkPos);
     void UnloadChunk(vec3 chunkPos);

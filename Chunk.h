@@ -32,10 +32,10 @@ private:
 public:
     Chunk(vec3 position_);
 
-    void GenerateChunkVertices(GLuint computeShaderID);
+    void GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshComputeShaderID);
     void GenerateChunkVoxels();
     void UpdateChunkNeighbour(Chunk* chunkN, int faceIndex);
-    void UpdateChunksNeighbours(std::vector<Chunk*> chunkNeighbours, GLuint computeShaderID);
+    void UpdateChunksNeighbours(std::vector<Chunk*> chunkNeighbours, GLuint computeShaderID, GLuint greedyMeshComputeShaderID);
 
     vec3 GetPosition();
     std::string GetChunkName();

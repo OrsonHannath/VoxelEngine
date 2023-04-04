@@ -15,10 +15,10 @@ void VoxelWorld::LoadChunk(vec3 chunkPos){
     Chunk* chunk = chunksMap[posTuple];
 
     // Update the new chunks neighbouring chunks and the neighbouring chunks' data about this new chunk
-    chunk->UpdateChunksNeighbours(CheckNeighbouringChunksLoaded(chunkPos), voxelComputeProgramID); // TODO make a compute shader purely to update the vertices of a face
+    chunk->UpdateChunksNeighbours(CheckNeighbouringChunksLoaded(chunkPos), voxelComputeProgramID, greedyMeshComputeProgramID); // TODO make a compute shader purely to update the vertices of a face
 
     // Load the chunks vertices
-    chunk->GenerateChunkVertices(voxelComputeProgramID);
+    chunk->GenerateChunkVertices(voxelComputeProgramID, greedyMeshComputeProgramID);
 
     // Set the loadedChunks value to true
     loadedChunks[posTuple] = true;
@@ -45,6 +45,11 @@ void VoxelWorld::AddChunk(Chunk* chunk) {
 void VoxelWorld::SetComputeProgramID(GLuint voxelComputeProgramID_) {
 
     voxelComputeProgramID = voxelComputeProgramID_;
+}
+
+void VoxelWorld::SetGreedyMeshingComputeProgramID(GLuint greedyMeshComputeProgramID_) {
+
+    greedyMeshComputeProgramID = greedyMeshComputeProgramID_;
 }
 
 // Returns an array neighbouring chunks load status in order - (front, right, back, left, bottom, top)

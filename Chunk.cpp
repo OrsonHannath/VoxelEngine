@@ -22,7 +22,7 @@ void Chunk::GenerateChunkVoxels() {
         for(int j = 0; j < size; j++){
             for(int k = 0; k < size; k++){
 
-                chunkVoxels[i][j][k].voxType = (rand() % 255);
+                chunkVoxels[i][j][k].voxType = 0;
 
                 int voxelWSX = floor(position.x) + i;
                 int voxelWSY = floor(position.y) + j;
@@ -30,12 +30,13 @@ void Chunk::GenerateChunkVoxels() {
 
                 float freq = 0.2;
                 float amp = 5;
-                float surfaceY = 8 + sin(voxelWSX * freq)*amp;
+                float surfaceY = 8 + sin(voxelWSZ * freq)*amp;
 
                 // Set the voxel isSolid
                 if(voxelWSY < surfaceY){
 
                     chunkVoxels[i][j][k].isSolid = 1;
+                    chunkVoxels[i][j][k].voxType = 5;//(rand() % 10); // Only give it a type if it is a solid
                 }else{
                     chunkVoxels[i][j][k].isSolid = 0;
                 }
@@ -44,7 +45,7 @@ void Chunk::GenerateChunkVoxels() {
     }
 }
 
-void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
+void Chunk::GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshComputeShaderID) {
 
     // Maximum number of vertices possible per chunk (each voxel will have maximum 3*12 vertices (verticesPerFace * Faces))
     int maxVerticesPossible = size*size*size*3*12;
@@ -118,6 +119,11 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
     glDispatchCompute(16, 1, 1);
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
+    // Setup and Run the Greedy Meshing Compute Shader
+    glUseProgram(greedyMeshComputeShaderID);
+    glDispatchCompute(6, 1, 1);
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
     // Retrieve the output vertices and apply them to local variable
     std::vector<VertexStruct> outVertices;
     outVertices.resize(maxVerticesPossible);
@@ -138,7 +144,7 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
         std::cerr << "[" << cs.r << "," << cs.g << "," << cs.b << "," << cs.a << "], ";
     }*/
 
-    // Remove all vertices/faces that cannot possibly render from ourVectors (Vertices and Vertex Colours Vectors should be same size)
+    // Remove all vertices/faces that cannot possibly render from outVectors (Vertices and Vertex Colours Vectors should be same size)
     verticesVec.clear();
     vertexColoursVec.clear();
     for(int i = 0; i < outVertices.size()/3; i++){
@@ -157,12 +163,11 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
             vertexColoursVec.push_back(outVertexColours.at(iAdjPos+2));
         }
     }
-
-    /*for(VertexStruct vs : verticesVec){
-        if(vs.x < position.x - 8 || vs.y < position.y - 8 || vs.z < position.z - 8) {
+    for(VertexStruct vs : verticesVec){
+        if(vs.x == 0 || vs.y == 0 || vs.z == 0) {
             std::cout << "[" << vs.x << "," << vs.y << "," << vs.z << "], ";
         }
-    }*/
+    }
 
     // Check that voxel data is being sent and received correctly
     /*std::vector<VoxelStruct> voxelFeedback(size*size*size);
@@ -181,7 +186,7 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID) {
 // chunkNeighboursLoaded has pointers to neighbouring chunks in order - (front, right, back, left, bottom, top)
 // Function updates the chunkNeighbouringFaceVoxels var for this chunk, this is based on the chunkNeighboursLoaded input
 // which specifies if there are neighbouring chunks that are already loaded
-void Chunk::UpdateChunksNeighbours(std::vector<Chunk*> chunkNeighboursLoaded, GLuint computeShaderID) {
+void Chunk::UpdateChunksNeighbours(std::vector<Chunk*> chunkNeighboursLoaded, GLuint computeShaderID, GLuint greedyMeshComputeShaderID) {
 
     // Array that remaps the faceIndex i.e. front face maps to back face. (normal order - front, right, back, left, bottom, top)
     int remapFaceIndex[] = {2, 3, 0, 1, 5, 4};
@@ -194,7 +199,7 @@ void Chunk::UpdateChunksNeighbours(std::vector<Chunk*> chunkNeighboursLoaded, GL
 
         // Update the neighbouring chunks' information about this chunk and regenerate its vertices
         chunkNeighboursLoaded.at(0)->UpdateChunkNeighbour(this, remapFaceIndex[0]);
-        chunkNeighboursLoaded.at(0)->GenerateChunkVertices(computeShaderID);
+        chunkNeighboursLoaded.at(0)->GenerateChunkVertices(computeShaderID, greedyMeshComputeShaderID);
     }
 
     // Update right neighbour
@@ -205,7 +210,7 @@ void Chunk::UpdateChunksNeighbours(std::vector<Chunk*> chunkNeighboursLoaded, GL
 
         // Update the neighbouring chunks' information about this chunk
         chunkNeighboursLoaded.at(1)->UpdateChunkNeighbour(this, remapFaceIndex[1]);
-        chunkNeighboursLoaded.at(1)->GenerateChunkVertices(computeShaderID);
+        chunkNeighboursLoaded.at(1)->GenerateChunkVertices(computeShaderID, greedyMeshComputeShaderID);
     }
 
     // Update back neighbour
@@ -216,7 +221,7 @@ void Chunk::UpdateChunksNeighbours(std::vector<Chunk*> chunkNeighboursLoaded, GL
 
         // Update the neighbouring chunks' information about this chunk
         chunkNeighboursLoaded.at(2)->UpdateChunkNeighbour(this, remapFaceIndex[2]);
-        chunkNeighboursLoaded.at(2)->GenerateChunkVertices(computeShaderID);
+        chunkNeighboursLoaded.at(2)->GenerateChunkVertices(computeShaderID, greedyMeshComputeShaderID);
     }
 
     // Update left neighbour
@@ -227,7 +232,7 @@ void Chunk::UpdateChunksNeighbours(std::vector<Chunk*> chunkNeighboursLoaded, GL
 
         // Update the neighbouring chunks' information about this chunk
         chunkNeighboursLoaded.at(3)->UpdateChunkNeighbour(this, remapFaceIndex[3]);
-        chunkNeighboursLoaded.at(3)->GenerateChunkVertices(computeShaderID);
+        chunkNeighboursLoaded.at(3)->GenerateChunkVertices(computeShaderID, greedyMeshComputeShaderID);
     }
 
     // Update bottom neighbour
@@ -238,7 +243,7 @@ void Chunk::UpdateChunksNeighbours(std::vector<Chunk*> chunkNeighboursLoaded, GL
 
         // Update the neighbouring chunks' information about this chunk
         chunkNeighboursLoaded.at(4)->UpdateChunkNeighbour(this, remapFaceIndex[4]);
-        chunkNeighboursLoaded.at(4)->GenerateChunkVertices(computeShaderID);
+        chunkNeighboursLoaded.at(4)->GenerateChunkVertices(computeShaderID, greedyMeshComputeShaderID);
     }
 
     // Update top neighbour
@@ -249,7 +254,7 @@ void Chunk::UpdateChunksNeighbours(std::vector<Chunk*> chunkNeighboursLoaded, GL
 
         // Update the neighbouring chunks' information about this chunk
         chunkNeighboursLoaded.at(5)->UpdateChunkNeighbour(this, remapFaceIndex[5]);
-        chunkNeighboursLoaded.at(5)->GenerateChunkVertices(computeShaderID);
+        chunkNeighboursLoaded.at(5)->GenerateChunkVertices(computeShaderID, greedyMeshComputeShaderID);
     }
 }
 

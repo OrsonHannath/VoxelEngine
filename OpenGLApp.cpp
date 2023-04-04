@@ -60,10 +60,11 @@ bool OpenGLApp::OnInit() {
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
     // Load in the shaders
-    GLuint* programIDs = LoadShaders("../shaders/VertexShader.vertexshader", "../shaders/FragmentShader.fragmentshader", "../shaders/VoxelComputeShader.computeshader");
+    GLuint* programIDs = LoadShaders("../shaders/VertexShader.vertexshader", "../shaders/FragmentShader.fragmentshader", "../shaders/VoxelComputeShader.computeshader", "../shaders/GreedyMeshComputeShader.computeshader");
 
     programID = *(programIDs);
     computeProgramID = *(programIDs + 1);
+    greedyMeshComputeProgramID = *(programIDs + 2);
 
     // Uniform Handles
     // Get a handle for our "MVP" uniform
@@ -77,6 +78,7 @@ bool OpenGLApp::OnInit() {
     GLHandles["matrixID"]= matrixID;
     GLHandles["programID"] = programID;
     GLHandles["computeProgramID"] = computeProgramID;
+    GLHandles["greedyMeshComputeProgramID"] = greedyMeshComputeProgramID;
 
     // Add a new scene to the scene manager
     Scene* scene = new TestingScene("Testing Scene", window, GLHandles);
@@ -135,12 +137,14 @@ void OpenGLApp::OnExit() {
     // Exit the App Here
 }
 
-GLuint* OpenGLApp::LoadShaders(const char *vertex_file_path, const char *fragment_file_path, const char *compute_file_path) {
+// TODO create a class for shaders so that they can be easily loaded and added
+GLuint* OpenGLApp::LoadShaders(const char *vertex_file_path, const char *fragment_file_path, const char *compute_file_path, const char *greedy_meshing_compute_file_path) {
 
     // Create the shaders
     GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
     GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
     GLuint ComputeShaderID = glCreateShader(GL_COMPUTE_SHADER);
+    GLuint GreedyMeshingComputeShaderID = glCreateShader(GL_COMPUTE_SHADER);
 
     // Read the Vertex Shader code from the file
     std::string VertexShaderCode;
@@ -174,6 +178,16 @@ GLuint* OpenGLApp::LoadShaders(const char *vertex_file_path, const char *fragmen
         sstr << ComputeShaderStream.rdbuf();
         ComputeShaderCode = sstr.str();
         ComputeShaderStream.close();
+    }
+
+    // Read the Greedy Meshing Compute Shader code from the file
+    std::string GreedyMeshingComputeShaderCode;
+    std::ifstream GreedyMeshingComputeShaderStream(greedy_meshing_compute_file_path, std::ios::in);
+    if(GreedyMeshingComputeShaderStream.is_open()){
+        std::stringstream sstr;
+        sstr << GreedyMeshingComputeShaderStream.rdbuf();
+        GreedyMeshingComputeShaderCode = sstr.str();
+        GreedyMeshingComputeShaderStream.close();
     }
 
     GLint Result = GL_FALSE;
@@ -224,6 +238,21 @@ GLuint* OpenGLApp::LoadShaders(const char *vertex_file_path, const char *fragmen
         printf("%s\n", &ComputeShaderErrorMessage[0]);
     }
 
+    // Compile Greedy Meshing Compute Shader
+    printf("Compiling shader : %s\n", greedy_meshing_compute_file_path);
+    char const * GreedyMeshingComputeSourcePointer = GreedyMeshingComputeShaderCode.c_str();
+    glShaderSource(GreedyMeshingComputeShaderID, 1, &GreedyMeshingComputeSourcePointer , NULL);
+    glCompileShader(GreedyMeshingComputeShaderID);
+
+    // Check GreedyMeshing Compute Shader
+    glGetShaderiv(GreedyMeshingComputeShaderID, GL_COMPILE_STATUS, &Result);
+    glGetShaderiv(GreedyMeshingComputeShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    if ( InfoLogLength > 0 ){
+        std::vector<char> GreedyMeshingComputeShaderErrorMessage(InfoLogLength+1);
+        glGetShaderInfoLog(GreedyMeshingComputeShaderID, InfoLogLength, NULL, &GreedyMeshingComputeShaderErrorMessage[0]);
+        printf("%s\n", &GreedyMeshingComputeShaderErrorMessage[0]);
+    }
+
     // Link the program
     printf("Linking main program\n");
     GLuint ProgramID = glCreateProgram();
@@ -237,6 +266,13 @@ GLuint* OpenGLApp::LoadShaders(const char *vertex_file_path, const char *fragmen
     glAttachShader(ComputeProgramID, ComputeShaderID);
     glCompileShader(ComputeProgramID);
     glLinkProgram(ComputeProgramID);
+
+    // Link the compute program
+    printf("Linking greedy meshing compute program\n");
+    GLuint GreedyMeshingComputeProgramID = glCreateProgram();
+    glAttachShader(GreedyMeshingComputeProgramID, GreedyMeshingComputeShaderID);
+    glCompileShader(GreedyMeshingComputeProgramID);
+    glLinkProgram(GreedyMeshingComputeProgramID);
 
     // Check the program
     glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
@@ -256,10 +292,20 @@ GLuint* OpenGLApp::LoadShaders(const char *vertex_file_path, const char *fragmen
         printf("%s\n", &ProgramErrorMessage[0]);
     }
 
+    // Check the program
+    glGetProgramiv(GreedyMeshingComputeProgramID, GL_LINK_STATUS, &Result);
+    glGetProgramiv(GreedyMeshingComputeProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    if ( InfoLogLength > 0 ){
+        std::vector<char> ProgramErrorMessage(InfoLogLength+1);
+        glGetProgramInfoLog(GreedyMeshingComputeProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+        printf("%s\n", &ProgramErrorMessage[0]);
+    }
+
     glDeleteShader(VertexShaderID);
     glDeleteShader(FragmentShaderID);
     glDeleteShader(ComputeShaderID);
+    glDeleteShader(GreedyMeshingComputeShaderID);
 
-    GLuint* programIDs = new GLuint[]{ProgramID, ComputeProgramID};
+    GLuint* programIDs = new GLuint[]{ProgramID, ComputeProgramID, GreedyMeshingComputeProgramID};
     return programIDs;
 }

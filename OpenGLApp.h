@@ -31,13 +31,14 @@ public:
     void OnRender();
     void OnExit();
 
-    GLuint* LoadShaders(const char* vertex_file_path, const char* fragment_file_path, const char* compute_file_path);
+    GLuint* LoadShaders(const char* vertex_file_path, const char* fragment_file_path, const char* compute_file_path, const char* greedy_meshing_compute_shader);
 
 private:
 
     bool isRunning;
     GLuint programID;
     GLuint computeProgramID;
+    GLuint greedyMeshComputeProgramID;
     GLuint matrixID;
 
     // Window Settings
