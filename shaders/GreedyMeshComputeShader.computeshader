@@ -47,15 +47,28 @@ layout(binding = 0) buffer voxel_data {
     Voxel voxels[];
 };
 
-// Apply greedy meshing to the specified sequence of faces
-void greedyMeshFaces(int x, int y, int z, int storedPos, int chainLength, int faceIndex){
+// Create a flattened 2D array to store information about the greedy meshing that has taken place
+bool greedyMeshHasData[16*16];
+int greedyMeshVoxelTypes[16*16];
+int greedyMeshHeights[16*16];
+int greedyMeshWidths[16*16];
+int greedyMeshVertexIndex[16*16];
+
+// Apply greedy meshing to the specified sequence of vertical faces
+void greedyMeshFacesVertical(int x, int y, int z, int storedPos, int chainLength, int faceIndex){
 
     // Store the current and stored face vertex information
     Vertex stored_vertices[6];
     Vertex curr_vertices[6];
 
+    // Set the stored voxels InvocationPos variable
+    int storedInvocationPos;
+
     // Apply Greedy Meshing to a Front, Back, Left or Right Face
     if(faceIndex == 0 || faceIndex == 2 || faceIndex == 3 || faceIndex == 1){
+
+        // Get the stored voxels InvocationPos
+        int storedInvocationPos = int(z + 16 * ((storedPos) + 16 * x));
 
         // Remove all of the old vertices and store the vertex information of the storedFace and the face it leads to
         for(int i = storedPos; i <= storedPos + chainLength; i++){
@@ -83,7 +96,6 @@ void greedyMeshFaces(int x, int y, int z, int storedPos, int chainLength, int fa
 
         // Front Face Greedy Meshing Alterations
         if(faceIndex == 0){
-            int storedInvocationPos = int(z + 16 * ((storedPos) + 16 * x));
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 0] = stored_vertices[0];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 1] = stored_vertices[1];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 2] = curr_vertices[2];
@@ -94,7 +106,6 @@ void greedyMeshFaces(int x, int y, int z, int storedPos, int chainLength, int fa
 
         // Back Face Greedy Meshing Alterations
         if(faceIndex == 2){
-            int storedInvocationPos = int(z + 16 * ((storedPos) + 16 * x));
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 0] = curr_vertices[0];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 1] = curr_vertices[1];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 2] = stored_vertices[2];
@@ -105,7 +116,6 @@ void greedyMeshFaces(int x, int y, int z, int storedPos, int chainLength, int fa
 
         // Left Face Greedy Meshing Alterations
         if(faceIndex == 3){
-            int storedInvocationPos = int(z + 16 * ((storedPos) + 16 * x));
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 0] = stored_vertices[0];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 1] = stored_vertices[1];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 2] = curr_vertices[2];
@@ -116,7 +126,6 @@ void greedyMeshFaces(int x, int y, int z, int storedPos, int chainLength, int fa
 
         // Right Face Greedy Meshing Alterations
         if(faceIndex == 1){
-            int storedInvocationPos = int(z + 16 * ((storedPos) + 16 * x));
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 0] = stored_vertices[0];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 1] = stored_vertices[1];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 2] = curr_vertices[2];
@@ -124,10 +133,32 @@ void greedyMeshFaces(int x, int y, int z, int storedPos, int chainLength, int fa
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 4] = curr_vertices[4];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 5] = stored_vertices[5];
         }
+
+        // Update the Greedy Mesh Arrays
+        int flattened2DIndex;
+
+        // Front and Back Faces Flattening
+        if(faceIndex == 0 || faceIndex == 2){
+            flattened2DIndex = x + ((storedPos + chainLength) * 16);
+        }
+
+        // Left and Right Faces Flattening
+        if(faceIndex == 3 || faceIndex == 1){
+            flattened2DIndex = z + ((storedPos + chainLength) * 16);
+        }
+
+        greedyMeshHasData[flattened2DIndex] = true;
+        greedyMeshVoxelTypes[flattened2DIndex] = voxels[storedInvocationPos].voxType;
+        greedyMeshHeights[flattened2DIndex] = chainLength;
+        greedyMeshWidths[flattened2DIndex] = 1;
+        greedyMeshVertexIndex[flattened2DIndex] = (storedInvocationPos * 36) + (faceIndex * 6);
     }
 
     // Apply Greedy Meshing to a Top or Bottom Face
     if(faceIndex == 5 || faceIndex == 4){
+
+        // Get the stored voxels InvocationPos
+        int storedInvocationPos = int((storedPos) + 16 * (y + 16 * x));
 
         // Remove all of the old vertices and store the vertex information of the storedFace and the face it leads to
         for(int i = storedPos; i <= storedPos + chainLength; i++){
@@ -155,7 +186,6 @@ void greedyMeshFaces(int x, int y, int z, int storedPos, int chainLength, int fa
 
         // Top Face Greedy Meshing Alterations
         if(faceIndex == 5){
-            int storedInvocationPos = int((storedPos) + 16 * (y + 16 * x));
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 0] = curr_vertices[0];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 1] = curr_vertices[1];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 2] = stored_vertices[2];
@@ -166,7 +196,6 @@ void greedyMeshFaces(int x, int y, int z, int storedPos, int chainLength, int fa
 
         // Bottom Face Greedy Meshing Alterations
         if(faceIndex == 4){
-            int storedInvocationPos = int((storedPos) + 16 * (y + 16 * x));
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 0] = stored_vertices[0];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 1] = stored_vertices[1];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 2] = curr_vertices[2];
@@ -174,13 +203,77 @@ void greedyMeshFaces(int x, int y, int z, int storedPos, int chainLength, int fa
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 4] = curr_vertices[4];
             vertices[(storedInvocationPos * 36) + (faceIndex * 6) + 5] = stored_vertices[5];
         }
+
+        // Update the Greedy Mesh Arrays
+        int flattened2DIndex = x + ((storedPos + chainLength) * 16);
+
+        greedyMeshHasData[flattened2DIndex] = true;
+        greedyMeshVoxelTypes[flattened2DIndex] = voxels[storedInvocationPos].voxType;
+        greedyMeshHeights[flattened2DIndex] = chainLength;
+        greedyMeshWidths[flattened2DIndex] = 1;
+        greedyMeshVertexIndex[flattened2DIndex] = (storedInvocationPos * 36) + (faceIndex * 6);
+    }
+}
+
+// Apply greedy meshing to the specified sequence of horizontal faces
+void greedyMeshFacesHorizontal(int index, int faceIndex){
+
+    // Vertices that will be used to apply greedy meshing
+    Vertex tlV, trV, blV, brV;
+
+    // Get the desired width of the greedy mesh
+    int width = greedyMeshWidths[index];
+    int height = greedyMeshHeights[index];
+
+    // Horizontal Greedy Meshing for Front and Back Faces
+    if(faceIndex == 0 || faceIndex == 2){
+
+        // Set the vertex variables to their respective global vertices
+        tlV = vertices[greedyMeshVertexIndex[index - (width - 1)] + 4];
+        trV = vertices[greedyMeshVertexIndex[index] + 2];
+        blV = vertices[greedyMeshVertexIndex[index - (width - 1)] + 5];
+        brV = vertices[greedyMeshVertexIndex[index] + 1];
+
+        // Wipe all the vertices that exist within where greedy meshing should apply
+        for(int i = index - width; i <= index; i++){
+            for(int l = 0; l < 6; l++){
+
+                int vertexIndex = greedyMeshVertexIndex[i];
+
+                //Colour c = {1,1,1,1};
+                //vertex_colours[vertexIndex + l] = c;
+                //Vertex v = {0, 0, 0};
+                //vertices[vertexIndex + l] = v;
+            }
+        }
+
+        // Create a Greedy Mesh Face
+        if(faceIndex == 0){
+
+            int vertexIndex = greedyMeshVertexIndex[index - width + 1];
+            vertex_colours[vertexIndex + 0] = Colour(1, 0, 0, 1);
+            vertex_colours[vertexIndex + 1] = Colour(0, 1, 0, 1);
+            vertex_colours[vertexIndex + 2] = Colour(0, 0, 1, 1);
+            vertex_colours[vertexIndex + 3] = Colour(1, 0, 0, 1);
+            vertex_colours[vertexIndex + 4] = Colour(0, 1, 0, 1);
+            vertex_colours[vertexIndex + 5] = Colour(0, 0, 1, 1);
+            vertices[vertexIndex + 0] = blV;
+            vertices[vertexIndex + 1] = brV;
+            vertices[vertexIndex + 2] = trV;
+            vertices[vertexIndex + 3] = trV;
+            vertices[vertexIndex + 4] = tlV;
+            vertices[vertexIndex + 5] = blV;
+        }
     }
 }
 
 // The cpu calls this shader with only 6x1x1 dispatch then this shader calls for 1x1x16 work groups
 void main(){
 
+    // Current Face Index (Dispatch Position)
+    int faceIndex = int(gl_WorkGroupID.x); // xIndex (dispatchIndex) refers to the face direction which is currently being greedy meshed
 
+    // Perform Vertical Greedy Meshing
     for(int i = 0; i < 16; i++){
 
         bool stored = false; // Whether or not a face is actually stored at the moment
@@ -189,9 +282,6 @@ void main(){
         int chainLength; // Chained length of adjacent faces of same voxel type
 
         for (int j = 0; j < 16; j++){
-
-            // Current Face Index (Dispatch Position)
-            int faceIndex = int(gl_WorkGroupID.x); // xIndex (dispatchIndex) refers to the face direction which is currently being greedy meshed
 
             // Vertical Greedy Meshing Logic
             if(faceIndex == 0 || faceIndex == 2 || faceIndex == 3 || faceIndex == 1 || faceIndex == 5 || faceIndex == 4){
@@ -262,7 +352,7 @@ void main(){
 
                             // Since this is the last sub-loop apply increment chainLength to account for this face then greedy meshing
                             chainLength++;
-                            greedyMeshFaces(x, y, z, storedPos, chainLength, faceIndex);
+                            greedyMeshFacesVertical(x, y, z, storedPos, chainLength, faceIndex);
                         }else{
 
                             // Since this isn't last iteration of sub-loop increase chainLength and go to next iteration of loop
@@ -275,7 +365,7 @@ void main(){
                         if(chainLength > 0){
 
                             // Length is greater than 0 so should apply greedy meshing
-                            greedyMeshFaces(x, y, z, storedPos, chainLength, faceIndex);
+                            greedyMeshFacesVertical(x, y, z, storedPos, chainLength, faceIndex);
                         }
 
                         // Set stored to false since this face isn't rendering and reset all stored data
@@ -290,7 +380,7 @@ void main(){
                     if(chainLength > 0){
 
                         // Length is greater than 0 so should apply greedy meshing
-                        greedyMeshFaces(x, y, z, storedPos, chainLength, faceIndex);
+                        greedyMeshFacesVertical(x, y, z, storedPos, chainLength, faceIndex);
 
                         // Check if the face is rendering
                         if(faceRendering){
@@ -310,6 +400,137 @@ void main(){
                         }
                     }
                 }
+            }
+        }
+    }
+
+    // Perform Horizontal Greedy Meshing
+    if(faceIndex == 0 || faceIndex == 2){
+        for(int i = 0; i < 16; i++){
+            for(int j = 1; j < 16; j++){
+
+                // Get a 1D Index of this loop iteration where (i = y, j = x)
+                int index = j + (i * 16);
+                int prevIndex = (j - 1) + (i * 16);
+                int nextIndex = (j + 1) + (i * 16);
+
+                // Make sure the current index has data stored
+                if(greedyMeshHasData[index] == true){
+
+                    // Check if the height of the previous greedy meshed face and the height of this greedy meshed face are the same
+                    if(greedyMeshHeights[index] == greedyMeshHeights[prevIndex]){
+
+                        // Check if the type of the previous greedy meshed face and the type of this greedy meshed face are the same
+                        if(greedyMeshVoxelTypes[index] == greedyMeshVoxelTypes[prevIndex]){
+
+                            // Make sure the previous greedy meshed face has data we want to read
+                            if(greedyMeshHasData[prevIndex] == true){
+
+                                // Add the width of the previous greedy meshed face to the current greedy meshed face
+                                greedyMeshWidths[index] += greedyMeshWidths[prevIndex];
+                                greedyMeshHasData[prevIndex] = false;
+
+                                // Check if current greedy meshed face is the last one in the chain or if the nextIndex would be out of bounds
+                                if(j != 1 && (j == 15 || greedyMeshHasData[nextIndex] == false)){ // This having j != 1 makes it work but not sure why (5/04/2023)
+
+                                    // Apply Horizontal Greedy Meshing and then Continue
+                                    greedyMeshFacesHorizontal(index, faceIndex);
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+
+
+
+
+
+                /*// Check if this position on greedyMesh array has a value for height
+                int height = greedyMeshHeights[index];
+                if(height > 0){
+
+                    // Check if the faces have the same voxel type
+                    int voxType = greedyMeshVoxelTypes[index];
+                    if(voxType == greedyMeshVoxelTypes[prevIndex]){
+
+                        // Since they are the same remove the entry at prevIndex and update the entry at index
+                        greedyMeshWidths[index] = greedyMeshWidths[index] + greedyMeshWidths[prevIndex];
+                        greedyMeshWidths[prevIndex] = 0;
+                        greedyMeshHeights[prevIndex] = 0;
+
+                        int vertexIndex = greedyMeshVertexIndex[index];
+                        int vertexIndexPrev = greedyMeshVertexIndex[prevIndex];
+
+                        // If the x position has reached the furthest it can go apply greedy meshing
+                        if(j == 15){
+                            for(int k = 0; k < 6; k++){
+
+                                Vertex v = {0, 0, 0};
+                                vertices[vertexIndex + k] = v;
+                            }
+                            continue;
+                        }
+
+                        // If the next face on the x axis is not the same height or not the same type as this face check if greedy meshing should be applied
+                        if(greedyMeshHeights[nextIndex] != greedyMeshHeights[index] || greedyMeshVoxelTypes[nextIndex] != greedyMeshVoxelTypes[index]){
+                            if(greedyMeshWidths[index] > 1){
+
+                                // Outermost Vertices
+                                Vertex tlV, trV, blV, brV;
+
+                                // Apply Greedy Meshing
+                                int width = greedyMeshWidths[index];
+                                for(int k = j - width; k < j; k++){
+
+                                    int index = k + (i * 16);
+                                    int botIndex = k + ((i - height) * 16);
+                                    int vertexIndex = greedyMeshVertexIndex[index];
+                                    int botVertexIndex = greedyMeshVertexIndex[botIndex];
+
+                                    // Update the outermost vertex variables
+                                    if(k == j-1){
+                                        trV = vertices[vertexIndex];
+                                        brV = vertices[botVertexIndex];
+                                    }
+
+                                    if(k == j - width){
+                                        tlV = vertices[vertexIndex];
+                                        blV = vertices[botVertexIndex];
+                                    }
+
+                                    for(int l = 0; l < 6; l++){
+
+                                        Vertex v = {0, 0, 0};
+                                        vertices[vertexIndex + l] = v;
+                                    }
+                                }
+
+                                // Front Face Greedy Meshing
+                                if(faceIndex == 0){
+                                    vertices[vertexIndex + 0] = blV;
+                                    vertices[vertexIndex + 1] = brV;
+                                    vertices[vertexIndex + 2] = trV;
+                                    vertices[vertexIndex + 3] = trV;
+                                    vertices[vertexIndex + 4] = tlV;
+                                    vertices[vertexIndex + 5] = blV;
+                                }
+
+                                // Back Face Greedy Meshing
+                                if(faceIndex == 2){
+                                    vertices[vertexIndex + 0] = tlV;
+                                    vertices[vertexIndex + 1] = trV;
+                                    vertices[vertexIndex + 2] = brV;
+                                    vertices[vertexIndex + 3] = brV;
+                                    vertices[vertexIndex + 4] = blV;
+                                    vertices[vertexIndex + 5] = tlV;
+                                }
+                            }
+                        }
+                    }
+                }*/
             }
         }
     }
