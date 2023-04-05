@@ -240,23 +240,21 @@ void greedyMeshFacesHorizontal(int index, int faceIndex){
 
                 int vertexIndex = greedyMeshVertexIndex[i];
 
-                //Colour c = {1,1,1,1};
-                //vertex_colours[vertexIndex + l] = c;
-                //Vertex v = {0, 0, 0};
-                //vertices[vertexIndex + l] = v;
+                Vertex v = {0, 0, 0};
+                vertices[vertexIndex + l] = v;
             }
         }
 
         // Create a Greedy Mesh Face
-        if(faceIndex == 0){
+        if(faceIndex == 0 || faceIndex == 2){
 
             int vertexIndex = greedyMeshVertexIndex[index - width + 1];
-            vertex_colours[vertexIndex + 0] = Colour(1, 0, 0, 1);
+            /*vertex_colours[vertexIndex + 0] = Colour(1, 0, 0, 1);
             vertex_colours[vertexIndex + 1] = Colour(0, 1, 0, 1);
             vertex_colours[vertexIndex + 2] = Colour(0, 0, 1, 1);
             vertex_colours[vertexIndex + 3] = Colour(1, 0, 0, 1);
             vertex_colours[vertexIndex + 4] = Colour(0, 1, 0, 1);
-            vertex_colours[vertexIndex + 5] = Colour(0, 0, 1, 1);
+            vertex_colours[vertexIndex + 5] = Colour(0, 0, 1, 1);*/
             vertices[vertexIndex + 0] = blV;
             vertices[vertexIndex + 1] = brV;
             vertices[vertexIndex + 2] = trV;
