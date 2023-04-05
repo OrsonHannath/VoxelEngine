@@ -422,6 +422,67 @@ void greedyMeshFacesVertical(int index, int faceIndex){
             vertices[vertexIndex + 5] = brV;
         }
     }
+
+    // Vertical Greedy Meshing for Top and Bottom Faces
+    if(faceIndex == 5 || faceIndex == 4){
+
+        // Set the vertex variables to their respective global vertices
+        if(faceIndex == 5){
+            tlV = vertices[vertGreedyMeshVertexIndex[index] + 5];
+            trV = vertices[vertGreedyMeshVertexIndex[index] + 1];
+            blV = vertices[vertGreedyMeshVertexIndex[index - ((height - 1) * 16)] + 4];
+            brV = vertices[vertGreedyMeshVertexIndex[index - ((height - 1) * 16)] + 2];
+        }
+
+        // Set the vertex variables to their respective global vertices
+        if(faceIndex == 4){
+            tlV = vertices[vertGreedyMeshVertexIndex[index] + 4];
+            trV = vertices[vertGreedyMeshVertexIndex[index] + 2];
+            blV = vertices[vertGreedyMeshVertexIndex[index - ((height - 1) * 16)] + 5];
+            brV = vertices[vertGreedyMeshVertexIndex[index - ((height - 1) * 16)] + 1];
+        }
+
+        // Wipe all the vertices that exist within where greedy meshing should apply
+        for(int i = 0; i < height; i++){
+
+            int iIndex = index - (i * 16);
+            for(int l = 0; l < 6; l++){
+
+                int vertexIndex = vertGreedyMeshVertexIndex[iIndex];
+                Vertex v = {0, 0, 0};
+                vertices[vertexIndex + l] = v;
+            }
+        }
+
+        int vertexIndex = vertGreedyMeshVertexIndex[index];
+        vertex_colours[vertexIndex + 0] = Colour(1, 0, 0, 1);
+        vertex_colours[vertexIndex + 1] = Colour(0, 1, 0, 1);
+        vertex_colours[vertexIndex + 2] = Colour(0, 0, 1, 1);
+        vertex_colours[vertexIndex + 3] = Colour(1, 0, 0, 1);
+        vertex_colours[vertexIndex + 4] = Colour(0, 1, 0, 1);
+        vertex_colours[vertexIndex + 5] = Colour(0, 0, 1, 1);
+
+        if(faceIndex == 5){
+
+            vertices[vertexIndex + 0] = tlV;
+            vertices[vertexIndex + 1] = trV;
+            vertices[vertexIndex + 2] = brV;
+            vertices[vertexIndex + 3] = brV;
+            vertices[vertexIndex + 4] = blV;
+            vertices[vertexIndex + 5] = tlV;
+        }
+
+        // Create a Greedy Mesh Right Face
+        if(faceIndex == 4){
+
+            vertices[vertexIndex + 0] = blV;
+            vertices[vertexIndex + 1] = brV;
+            vertices[vertexIndex + 2] = trV;
+            vertices[vertexIndex + 3] = trV;
+            vertices[vertexIndex + 4] = tlV;
+            vertices[vertexIndex + 5] = blV;
+        }
+    }
 }
 
 // The cpu calls this shader with only 6x1x1 dispatch then this shader calls for 1x1x16 work groups
@@ -457,6 +518,12 @@ void main(){
             if(faceIndex == 3 || faceIndex == 1){
 
                 invocationPos = int(int(gl_LocalInvocationID.z) + 16 * (j + 16 * i)); // Voxels flattened position
+                vertexPosition = (invocationPos * 36) + (faceIndex * 6);
+            }
+
+            if(faceIndex == 5 || faceIndex == 4){
+
+                invocationPos = int(j + 16 * (int(gl_LocalInvocationID.z) + 16 * i)); // Voxels flattened position
                 vertexPosition = (invocationPos * 36) + (faceIndex * 6);
             }
 
