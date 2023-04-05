@@ -30,7 +30,7 @@ void Chunk::GenerateChunkVoxels() {
 
                 float freq = 0.2;
                 float amp = 5;
-                float surfaceY = 8 + sin(voxelWSZ * freq)*amp;
+                float surfaceY = 8 + sin(voxelWSX * freq)*amp;
 
                 // Set the voxel isSolid
                 if(voxelWSY < surfaceY){
