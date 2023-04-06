@@ -21,12 +21,13 @@ TestingScene::TestingScene(std::string name, GLFWwindow* window_, std::map<std::
     // With Chunk Based Greedy Meshing - ~120fps for 12x12x12 chunks rendered (post scene rendering optimization 6/04/2023)
     // With Chunk Based Greedy Meshing and Perlin Noise Generation - ~4fps for 12x12x12 chunks rendered (pre scene rendering optimization 6/04/2023)
     // With Chunk Based Greedy Meshing and Perlin Noise Generation - ~25fps for 12x12x12 chunks rendered (post scene rendering optimization 6/04/2023)
+    // With Chunk Based Greedy Meshing and Perlin Noise Generation - ~30fps ~1.5gb for 12x12x12 chunks rendered (post chunk byte size reduction 7/04/2023)
 
     // Implement LOD
     // Implement chunk loading
     // Make chunks use less data
 
-    int chunkViewDist = 2;
+    int chunkViewDist = 12;
     int chunkSize = 16;
     for(int i = 0; i < chunkViewDist; i++) {
         for (int j = 0; j > -chunkViewDist; j--) {

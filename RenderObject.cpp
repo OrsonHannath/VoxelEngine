@@ -18,6 +18,11 @@ void RenderObject::SetVertexBufferData(std::vector<VertexStruct> data_) {
     vertex_buffer_data = data_;
 }
 
+void RenderObject::SetVoxelVertexBufferData(std::vector<VoxelVertexStruct> data_) {
+
+    voxel_vertex_buffer_data = data_;
+}
+
 void RenderObject::SetVertexColourData(std::vector<ColourStruct> data_) {
 
     vertex_colour_data = data_;
@@ -39,10 +44,22 @@ void RenderObject::OverlayVertexColours(Colour col) {
 void RenderObject::SetObjectColour(ColourStruct col_) {
 
     std::vector<ColourStruct> colourDataVec;
-    for(VertexStruct vs : vertex_buffer_data){
 
-        ColourStruct cs = {col_.r, col_.g, col_.b, col_.a};
-        colourDataVec.push_back(cs);
+    // Check if we are rendering a voxel or something else
+    if(voxel_vertex_buffer_data.size() > 0){
+
+        for(VoxelVertexStruct vs : voxel_vertex_buffer_data){
+
+            ColourStruct cs = {col_.r, col_.g, col_.b, col_.a};
+            colourDataVec.push_back(cs);
+        }
+    }else{
+
+        for(VertexStruct vs : vertex_buffer_data){
+
+            ColourStruct cs = {col_.r, col_.g, col_.b, col_.a};
+            colourDataVec.push_back(cs);
+        }
     }
 
     vertex_colour_data = colourDataVec;
@@ -80,7 +97,13 @@ mat4 RenderObject::GetMVPMatrix() {
 
 int RenderObject::GetVertexBufferDataSize() {
 
-    return vertex_buffer_data.size();
+    if(voxel_vertex_buffer_data.size() > 0){
+
+        return voxel_vertex_buffer_data.size();
+    }else {
+
+        return vertex_buffer_data.size();
+    }
 }
 
 int RenderObject::GetVertexColourDataSize() {
@@ -93,14 +116,24 @@ std::vector<VertexStruct> RenderObject::GetVertexBufferData() {
     return vertex_buffer_data;
 }
 
-std::vector<ColourStruct> RenderObject::GetVertexColourData() {
-
-    return vertex_colour_data;
-}
-
 std::vector<VertexStruct>* RenderObject::GetVertexBufferDataAddress() {
 
     return &vertex_buffer_data;
+}
+
+std::vector<VoxelVertexStruct> RenderObject::GetVoxelVertexBufferData() {
+
+    return voxel_vertex_buffer_data;
+}
+
+std::vector<VoxelVertexStruct>* RenderObject::GetVoxelVertexBufferDataAddress() {
+
+    return &voxel_vertex_buffer_data;
+}
+
+std::vector<ColourStruct> RenderObject::GetVertexColourData() {
+
+    return vertex_colour_data;
 }
 
 std::vector<ColourStruct>* RenderObject::GetVertexColourDataAddress() {

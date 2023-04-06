@@ -12,10 +12,8 @@
 
 class VoxelWorld {
 private:
-    std::map<std::tuple<float, float, float>, Chunk*> chunksMap;
-    std::map<std::tuple<float, float, float>, bool> loadedChunks; // Stores whether a chunk is loaded mapped using the key of the chunks name (could optimize key)
-    std::map<std::tuple<float, float, float>, std::vector<VertexStruct>> chunksVertexBufferMap;
-    std::map<std::tuple<float, float, float>, std::vector<ColourStruct>> chunksColourBufferMap;
+    std::map<std::tuple<int, int, int>, Chunk*> chunksMap;
+    std::map<std::tuple<int, int, int>, bool> loadedChunks; // Stores whether a chunk is loaded mapped using the key of the chunks name (could optimize key)
     GLuint voxelComputeProgramID;
     GLuint greedyMeshComputeProgramID;
 public:
@@ -24,12 +22,12 @@ public:
     void SetComputeProgramID(GLuint voxelComputeProgramID_);
     void SetGreedyMeshingComputeProgramID(GLuint greedyMeshComputeProgramID_);
     void AddChunk(Chunk* chunk);
-    void LoadChunk(vec3 chunkPos);
-    void UnloadChunk(vec3 chunkPos);
+    void LoadChunk(ivec3 chunkPos);
+    void UnloadChunk(ivec3 chunkPos);
 
-    std::map<std::tuple<float, float, float>, Chunk*> GetChunksMap();
-    std::vector<Chunk*> CheckNeighbouringChunksLoaded(vec3 chunkPos);
-    Chunk* GetChunk(vec3 chunkPos);
+    std::map<std::tuple<int, int, int>, Chunk*> GetChunksMap();
+    std::vector<Chunk*> CheckNeighbouringChunksLoaded(ivec3 chunkPos);
+    Chunk* GetChunk(ivec3 chunkPos);
 };
 
 

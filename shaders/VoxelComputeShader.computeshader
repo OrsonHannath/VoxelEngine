@@ -2,7 +2,7 @@
 layout(local_size_x = 1, local_size_y = 16, local_size_z = 16) in;
 
 struct Chunk{
-    vec3 pos;
+    ivec3 pos;
 };
 
 struct Voxel{
@@ -11,16 +11,16 @@ struct Voxel{
 };
 
 struct Vertex{
-    float x;
-    float y;
-    float z;
+    int x;
+    int y;
+    int z;
 };
 
 struct Colour{
-    float r;
-    float g;
-    float b;
-    float a;
+    int r;
+    int g;
+    int b;
+    int a;
 };
 
 // Chunk Data
@@ -54,14 +54,14 @@ layout(binding = 4) buffer neighbouring_face_voxel_data {
 };
 
 // Source: OpenGL_Programming - Modern_OpenGL_Tutorial_05
-float voxel_vertices[] = {  -0.5, -0.5,  0.5,
-                            0.5, -0.5,  0.5,
-                            0.5,  0.5,  0.5,
-                            -0.5,  0.5,  0.5,
-                            -0.5, -0.5, -0.5,
-                            0.5, -0.5, -0.5,
-                            0.5,  0.5, -0.5,
-                            -0.5,  0.5, -0.5};
+float voxel_vertices[] = {  0, 0,  1,
+                            1, 0,  1,
+                            1,  1,  1,
+                            0,  1,  1,
+                            0, 0, 0,
+                            1, 0, 0,
+                            1,  1, 0,
+                            0,  1, 0};
 
 int voxel_faces[] = {0, 1, 2, // Front
                      2, 3, 0,
@@ -171,15 +171,15 @@ void main() {
             // Check if this face should be rendered
             if(solid_neighbour_faces[faceIndex] == 0){
                 Vertex v;
-                v.x = voxel_vertices[vertexIndex] + chunk[0].pos.x + x;
-                v.y = voxel_vertices[vertexIndex+1] + chunk[0].pos.y + y;
-                v.z = voxel_vertices[vertexIndex+2] + chunk[0].pos.z + zIndex; // These are being made too positive
+                v.x = int(voxel_vertices[vertexIndex] + chunk[0].pos.x + x);
+                v.y = int(voxel_vertices[vertexIndex+1] + chunk[0].pos.y + y);
+                v.z = int(voxel_vertices[vertexIndex+2] + chunk[0].pos.z + zIndex); // These are being made too positive
 
                 Colour c;
-                c.r = currVoxel.voxType/255.0f;
-                c.g = currVoxel.voxType/255.0f;
-                c.b = currVoxel.voxType/255.0f;
-                c.a = currVoxel.voxType/255.0f;
+                c.r = currVoxel.voxType;
+                c.g = currVoxel.voxType;
+                c.b = currVoxel.voxType;
+                c.a = currVoxel.voxType;
 
                 int vertexBufferPos = int((invocationPos * 36) + i);
                 vertices[vertexBufferPos] = v;

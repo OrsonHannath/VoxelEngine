@@ -6,5 +6,5 @@
 
 Colour RandomColour(){
 
-    return {RandomFloat(0, 1, 6), RandomFloat(0, 1, 6), RandomFloat(0, 1, 6), 1};
+    return {RandomInt(0, 255), RandomInt(0, 255), RandomInt(0, 255), 1};
 }

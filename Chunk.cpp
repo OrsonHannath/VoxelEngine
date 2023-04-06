@@ -89,12 +89,12 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshCompu
 
     // Create an array of vertex positions (Init at maximum possible vertices for chunk)
     // Then Create a buffer for the output vertices
-    std::vector<VertexStruct> vertices(maxVerticesPossible);
+    std::vector<VoxelVertexStruct> vertices(maxVerticesPossible);
     GLuint verticesBuffer;
     glGenBuffers(1, &verticesBuffer);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, verticesBuffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1 ,verticesBuffer);
-    glBufferStorage(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(VertexStruct), vertices.data(), 0);
+    glBufferStorage(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(VoxelVertexStruct), vertices.data(), 0);
 
     // Create an array of colour positions (Init at maximum possible vertices for chunk)
     // Then Create a buffer for the output vertex colours
@@ -134,12 +134,12 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshCompu
     float postGreedyMeshTime = glfwGetTime() - startTime;
 
     // Retrieve the output vertices and apply them to local variable
-    std::vector<VertexStruct> outVertices;
+    std::vector<VoxelVertexStruct> outVertices;
     outVertices.resize(maxVerticesPossible);
-    glGetNamedBufferSubData(verticesBuffer, 0, outVertices.size() * sizeof(VertexStruct), outVertices.data());
-    /*for(VertexStruct vs : outVertices){
+    glGetNamedBufferSubData(verticesBuffer, 0, outVertices.size() * sizeof(VoxelVertexStruct), outVertices.data());
+    /*for(VoxelVertexStruct vs : outVertices){
 
-        //std::cerr << "[" << vs.x << "," << vs.y << "," << vs.z << "], ";
+        std::cerr << "[" << vs.x << "," << vs.y << "," << vs.z << "], ";
     }*/
 
     // Retrieve the output vertex colours and apply them to local variable
@@ -151,10 +151,17 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshCompu
         std::cerr << "[" << cs.r << "," << cs.g << "," << cs.b << "," << cs.a << "], ";
     }*/
 
+    // Unbind the buffers
+    glDeleteBuffers(1, &voxelDataBuffer);
+    glDeleteBuffers(1, &verticesBuffer);
+    glDeleteBuffers(1, &vertexColoursBuffer);
+    glDeleteBuffers(1, &chunkStructBuffer);
+    glDeleteBuffers(1, &neighbouringFacesBuffer);
+
     float postDataRetrievalTime = glfwGetTime() - startTime;
 
     // Remove all vertices/faces that cannot possibly render from outVectors (Vertices and Vertex Colours Vectors should be same size)
-    std::vector<VertexStruct> verticesVec;
+    std::vector<VoxelVertexStruct> verticesVec;
     std::vector<ColourStruct> vertexColoursVec;
     for(int i = 0; i < outVertices.size()/3; i++){
 
@@ -190,7 +197,7 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshCompu
 
     // Create and set the render object of this chunk
     renderObject = new RenderObject(GetChunkName());
-    renderObject->SetVertexBufferData(verticesVec);
+    renderObject->SetVoxelVertexBufferData(verticesVec);
     renderObject->SetVertexColourData(vertexColoursVec);
 
     // Print the timing results of this chunks generation

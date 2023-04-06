@@ -101,7 +101,7 @@ void Scene::RenderScene(float* deltaTimePtr) {
         timerE += glfwGetTime() - timeNow;
 
         // Get the vertex and colour information from the object
-        std::vector<VertexStruct>* object_vertex_buffer = renderObject->GetVertexBufferDataAddress();
+        std::vector<VoxelVertexStruct>* object_vertex_buffer = renderObject->GetVoxelVertexBufferDataAddress();
         std::vector<ColourStruct>* object_colour_buffer = renderObject->GetVertexColourDataAddress();
         int vertsToDraw = renderObject->GetVertexBufferDataSize(); // Number of vertices should be drawn
 
@@ -138,7 +138,7 @@ void Scene::RenderScene(float* deltaTimePtr) {
 
         // Set the vertex buffer
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, renderObject->GetVertexBufferDataSize() * sizeof(VertexStruct), &(*object_vertex_buffer)[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, renderObject->GetVertexBufferDataSize() * sizeof(VoxelVertexStruct), &(*object_vertex_buffer)[0], GL_STATIC_DRAW);
 
         // Set the vertex colour buffer
         glBindBuffer(GL_ARRAY_BUFFER, colourBuffer);
@@ -152,7 +152,7 @@ void Scene::RenderScene(float* deltaTimePtr) {
         glVertexAttribPointer(
                 0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
                 3,                  // size
-                GL_FLOAT,           // type
+                GL_INT,             // type
                 GL_FALSE,           // normalized?
                 0,                  // stride
                 (void*)0            // array buffer offset
@@ -164,7 +164,7 @@ void Scene::RenderScene(float* deltaTimePtr) {
         glVertexAttribPointer(
                 1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
                 4,                                // size
-                GL_FLOAT,                         // type
+                GL_INT,                           // type
                 GL_FALSE,                         // normalized?
                 0,                                // stride
                 (void*)0                          // array buffer offset

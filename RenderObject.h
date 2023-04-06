@@ -16,6 +16,7 @@
 class RenderObject: public Object{
 protected:
     std::vector<VertexStruct> vertex_buffer_data;
+    std::vector<VoxelVertexStruct> voxel_vertex_buffer_data;
     std::vector<ColourStruct> vertex_colour_data;
     int vertex_buffer_size;
     mat4 modelMatrix;
@@ -27,6 +28,7 @@ public:
     void SetMVPMatrix(mat4 mvp);
     void SetObjectColour(ColourStruct col_);
     void SetVertexBufferData(std::vector<VertexStruct> data_);
+    void SetVoxelVertexBufferData(std::vector<VoxelVertexStruct> data_);
     void SetVertexColourData(std::vector<ColourStruct> data_);
 
     void OverlayVertexColours(Colour col);
@@ -40,8 +42,10 @@ public:
     int GetVertexBufferDataSize();
     int GetVertexColourDataSize();
     std::vector<VertexStruct> GetVertexBufferData();
-    std::vector<ColourStruct> GetVertexColourData();
     std::vector<VertexStruct>* GetVertexBufferDataAddress();
+    std::vector<VoxelVertexStruct> GetVoxelVertexBufferData();
+    std::vector<VoxelVertexStruct>* GetVoxelVertexBufferDataAddress();
+    std::vector<ColourStruct> GetVertexColourData();
     std::vector<ColourStruct>* GetVertexColourDataAddress();
 };
 

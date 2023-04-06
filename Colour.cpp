@@ -32,43 +32,32 @@ void Colour::SetRGBA(int r, int g, int b, int a){
     alpha = a;
 }
 
-float Colour::GetRed() {
+int Colour::GetRed() {
 
     return red;
 }
 
-float Colour::GetGreen() {
+int Colour::GetGreen() {
 
     return green;
 }
 
-float Colour::GetBlue() {
+int Colour::GetBlue() {
      return blue;
 }
 
-float Colour::GetAlpha() {
+int Colour::GetAlpha() {
 
     return alpha;
 }
 
 Colour Colour::operator*(Colour &col) const {
 
-    return Colour(red * col.red, green * col.GetGreen(), blue * col.GetBlue(), alpha * col.GetAlpha());
+    return Colour((int)((red/255.0f) * (col.GetRed()/255.0f)) * 255, (int)((green/255.0f) * (col.GetGreen()/255.0f)) * 255, (int)((blue/255.0f) * (col.GetBlue()/255.0f)) * 255, (int)((alpha/255.0f) * (col.GetAlpha()/255.0f)) * 255);
 }
 
 ColourStruct Colour::GetColourStruct() {
 
     ColourStruct cs = {red, green, blue, alpha};
     return cs;
-}
-
-Colour LerpBetweenColours(Colour* startCol, Colour* endCol, float lerpPos){
-
-    float lerpedRed = (endCol->GetRed() - startCol->GetRed()) * lerpPos + startCol->GetRed();
-    float lerpedGreen = (endCol->GetGreen() - startCol->GetGreen()) * lerpPos + startCol->GetGreen();
-    float lerpedBlue = (endCol->GetBlue() - startCol->GetBlue()) * lerpPos + startCol->GetBlue();
-    float lerpedAlpha = (endCol->GetAlpha() - startCol->GetAlpha()) * lerpPos + startCol->GetAlpha();
-    Colour lerpedCol = Colour((int)lerpedRed, (int)lerpedGreen, (int)lerpedBlue, (int)lerpedAlpha);
-
-    return lerpedCol;
 }

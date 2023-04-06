@@ -9,12 +9,29 @@
 #include <iostream>
 
 struct ChunkStruct{
-    glm::vec3 pos;
+    glm::ivec3 pos;
 };
 
 struct VoxelStruct{
     int voxType;
     int isSolid;
+};
+
+struct VoxelVertexStruct{
+    int x;
+    int y;
+    int z;
+
+    bool operator==(VoxelVertexStruct &vertex) const{
+
+        return (x == vertex.x) && (y == vertex.y) && (z == vertex.z);
+    }
+
+    std::string toString(){
+
+        std::string str = "[" + std::to_string(x) + ", " + std::to_string(y) + ", "+ std::to_string(z) + "]";
+        return str;
+    }
 };
 
 struct VertexStruct{
@@ -35,14 +52,14 @@ struct VertexStruct{
 };
 
 struct ColourStruct{
-    float r;
-    float g;
-    float b;
-    float a;
+    int r;
+    int g;
+    int b;
+    int a;
 
     ColourStruct operator*(ColourStruct &colour) const{
 
-        ColourStruct cs = {r * colour.r, g * colour.g, b * colour.b, a * colour.a};
+        ColourStruct cs = {(int)((r/255.0f) * (colour.r/255.0f)) * 255, (int)((g/255.0f) * (colour.g/255.0f)) * 255, (int)((b/255.0f) * (colour.b/255.0f)) * 255, (int)((a/255.0f) * (colour.a/255.0f)) * 255};
         return cs;
     }
 
