@@ -4,48 +4,53 @@
 
 #include "Chunk.h"
 
-Chunk::Chunk(vec3 position_) {
+Chunk::Chunk(ivec3 position_) {
 
     position = position_;
 }
 
 void Chunk::GenerateChunkVoxels() {
 
-    // Find where the random artefacts are coming from
-    // Pass in surrounding chunks border voxels so that we know 100% what needs to be rendered
+    std::cout << "Generating Voxels for " << GetChunkName() << std::endl;
+    float startTime = glfwGetTime();
 
     PerlinNoise perlinNoise = PerlinNoise();
-
-    std::cout << GetChunkName() << std::endl;
 
     for(int i = 0; i < size; i++){
         for(int j = 0; j < size; j++){
             for(int k = 0; k < size; k++){
 
-                chunkVoxels[i][j][k].voxType = 0;
-
                 int voxelWSX = floor(position.x) + i;
                 int voxelWSY = floor(position.y) + j;
                 int voxelWSZ = floor(position.z) + k;
+
+                float noiseVal = perlinNoise.GetNoiseAtPoint(voxelWSX, voxelWSY, voxelWSZ);
 
                 float freq = 0.2;
                 float amp = 5;
                 float surfaceY = 8 + sin(voxelWSX * freq)*amp;
 
                 // Set the voxel isSolid
-                if(voxelWSY < surfaceY){
+                if(noiseVal > 0.0f){
 
                     chunkVoxels[i][j][k].isSolid = 1;
-                    chunkVoxels[i][j][k].voxType = 5;//(rand() % 10); // Only give it a type if it is a solid
+                    chunkVoxels[i][j][k].voxType = (int)(noiseVal*255) + 25;
+                    //chunkVoxels[i][j][k].voxType = 5;//(rand() % 10); // Only give it a type if it is a solid
                 }else{
                     chunkVoxels[i][j][k].isSolid = 0;
                 }
             }
         }
     }
+
+    float timeToGenerate = glfwGetTime() - startTime;
+    std::cout << "   - " << timeToGenerate*1000 << "ms to generate voxel data" << std::endl;
 }
 
 void Chunk::GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshComputeShaderID) {
+
+    std::cout << "Generating Mesh for " << GetChunkName() << std::endl;
+    float startTime = glfwGetTime();
 
     // Maximum number of vertices possible per chunk (each voxel will have maximum 3*12 vertices (verticesPerFace * Faces))
     int maxVerticesPossible = size*size*size*3*12;
@@ -73,6 +78,8 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshCompu
             }
         }
     }
+
+    float postVectorCreationTime = glfwGetTime() - startTime;
 
     GLuint voxelDataBuffer;
     glGenBuffers(1, &voxelDataBuffer);
@@ -118,17 +125,18 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshCompu
     glUseProgram(computeShaderID);
     glDispatchCompute(16, 1, 1);
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    float postComputeShaderTime = glfwGetTime() - startTime;
 
     // Setup and Run the Greedy Meshing Compute Shader
     glUseProgram(greedyMeshComputeShaderID);
     glDispatchCompute(6, 1, 1);
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    float postGreedyMeshTime = glfwGetTime() - startTime;
 
     // Retrieve the output vertices and apply them to local variable
     std::vector<VertexStruct> outVertices;
     outVertices.resize(maxVerticesPossible);
     glGetNamedBufferSubData(verticesBuffer, 0, outVertices.size() * sizeof(VertexStruct), outVertices.data());
-    verticesVec.clear();
     /*for(VertexStruct vs : outVertices){
 
         //std::cerr << "[" << vs.x << "," << vs.y << "," << vs.z << "], ";
@@ -138,15 +146,16 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshCompu
     std::vector<ColourStruct> outVertexColours;
     outVertexColours.resize(maxVerticesPossible);
     glGetNamedBufferSubData(vertexColoursBuffer, 0, outVertexColours.size() * sizeof(ColourStruct), outVertexColours.data());
-    vertexColoursVec.clear();
     /*for(ColourStruct cs : outVertexColours){
 
         std::cerr << "[" << cs.r << "," << cs.g << "," << cs.b << "," << cs.a << "], ";
     }*/
 
+    float postDataRetrievalTime = glfwGetTime() - startTime;
+
     // Remove all vertices/faces that cannot possibly render from outVectors (Vertices and Vertex Colours Vectors should be same size)
-    verticesVec.clear();
-    vertexColoursVec.clear();
+    std::vector<VertexStruct> verticesVec;
+    std::vector<ColourStruct> vertexColoursVec;
     for(int i = 0; i < outVertices.size()/3; i++){
 
         int iAdjPos = i*3;
@@ -163,11 +172,13 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshCompu
             vertexColoursVec.push_back(outVertexColours.at(iAdjPos+2));
         }
     }
-    for(VertexStruct vs : verticesVec){
+    /*for(VertexStruct vs : verticesVec){
         if(vs.x == 0 || vs.y == 0 || vs.z == 0) {
             std::cout << "[" << vs.x << "," << vs.y << "," << vs.z << "], ";
         }
-    }
+    }*/
+
+    float postVertexRemovalTime = glfwGetTime() - startTime;
 
     // Check that voxel data is being sent and received correctly
     /*std::vector<VoxelStruct> voxelFeedback(size*size*size);
@@ -181,6 +192,13 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshCompu
     renderObject = new RenderObject(GetChunkName());
     renderObject->SetVertexBufferData(verticesVec);
     renderObject->SetVertexColourData(vertexColoursVec);
+
+    // Print the timing results of this chunks generation
+    std::cout << "   - " << postVectorCreationTime*1000 << "ms to create vertex and colour vectors" << std::endl;
+    std::cout << "   - " << postComputeShaderTime*1000 << "ms to execute compute shader" << std::endl;
+    std::cout << "   - " << postGreedyMeshTime*1000 << "ms to execute greedy meshing shader" << std::endl;
+    std::cout << "   - " << postDataRetrievalTime*1000 << "ms to retrieve data from gpu to cpu" << std::endl; // This is a bottleneck
+    std::cout << "   - " << postVertexRemovalTime*1000 << "ms to remove all blank vertex data" << std::endl;
 }
 
 // chunkNeighboursLoaded has pointers to neighbouring chunks in order - (front, right, back, left, bottom, top)
@@ -391,7 +409,7 @@ std::vector<std::vector<int>> Chunk::GetChunkFaceSolidity(int faceIndex) {
     return faceSolidityVec;
 }
 
-vec3 Chunk::GetPosition() {
+ivec3 Chunk::GetPosition() {
 
     return position;
 }

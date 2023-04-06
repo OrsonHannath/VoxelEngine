@@ -176,10 +176,10 @@ void main() {
                 v.z = voxel_vertices[vertexIndex+2] + chunk[0].pos.z + zIndex; // These are being made too positive
 
                 Colour c;
-                c.r = currVoxel.voxType/10.0f;
-                c.g = currVoxel.voxType/10.0f;
-                c.b = currVoxel.voxType/10.0f;
-                c.a = currVoxel.voxType/10.0f;
+                c.r = currVoxel.voxType/255.0f;
+                c.g = currVoxel.voxType/255.0f;
+                c.b = currVoxel.voxType/255.0f;
+                c.a = currVoxel.voxType/255.0f;
 
                 int vertexBufferPos = int((invocationPos * 36) + i);
                 vertices[vertexBufferPos] = v;

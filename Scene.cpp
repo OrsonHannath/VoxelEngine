@@ -77,8 +77,16 @@ void Scene::RenderScene(float* deltaTimePtr) {
     // Now draw the render object vertices
     glDrawArrays(GL_TRIANGLES, 0, vertsToDraw);
 
+    float timerA = 0;
+    float timerB = 0;
+    float timerC = 0;
+    float timerD = 0;
+    float timerE = 0;
+
     // Draw each chunk
     for(auto& kv : voxelWorld->GetChunksMap()){
+
+        float timeNow = glfwGetTime();
 
         Chunk* chunk = kv.second;
 
@@ -90,12 +98,14 @@ void Scene::RenderScene(float* deltaTimePtr) {
             continue;
         }
 
-        // Get the vertex and colour information from the object
-        std::vector<VertexStruct> object_vertex_buffer = renderObject->GetVertexBufferData();
-        std::vector<ColourStruct> object_colour_buffer = renderObject->GetVertexColourData();
+        timerE += glfwGetTime() - timeNow;
 
-        // Calculate how many vertices should be drawn
-        int vertsToDraw = object_vertex_buffer.size();
+        // Get the vertex and colour information from the object
+        std::vector<VertexStruct>* object_vertex_buffer = renderObject->GetVertexBufferDataAddress();
+        std::vector<ColourStruct>* object_colour_buffer = renderObject->GetVertexColourDataAddress();
+        int vertsToDraw = renderObject->GetVertexBufferDataSize(); // Number of vertices should be drawn
+
+        timerA += glfwGetTime() - timeNow;
 
         // Voxel Face Triangle Positional Debugging
         /*for(int i = 0; i < (object_vertex_buffer.size() / sizeof(vertexBuffer)) / 12; i++){
@@ -124,14 +134,17 @@ void Scene::RenderScene(float* deltaTimePtr) {
         mat4 mvpMat = renderObject->GetMVPMatrix();
         glUniformMatrix4fv(GLHandles["matrixID"], 1, GL_FALSE, &mvpMat[0][0]);
 
+        timerB += glfwGetTime() - timeNow;
+
         // Set the vertex buffer
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, object_vertex_buffer.size() * sizeof(object_vertex_buffer[0]), &object_vertex_buffer[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, renderObject->GetVertexBufferDataSize() * sizeof(VertexStruct), &(*object_vertex_buffer)[0], GL_STATIC_DRAW);
 
         // Set the vertex colour buffer
         glBindBuffer(GL_ARRAY_BUFFER, colourBuffer);
-        glBufferData(GL_ARRAY_BUFFER, object_colour_buffer.size() * sizeof(object_colour_buffer[0]), &object_colour_buffer[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, renderObject->GetVertexColourDataSize() * sizeof(ColourStruct), &(*object_colour_buffer)[0], GL_STATIC_DRAW);
 
+        timerC  += glfwGetTime() - timeNow;
 
         // 1st attribute buffer : vertices
         glEnableVertexAttribArray(0);
@@ -159,7 +172,15 @@ void Scene::RenderScene(float* deltaTimePtr) {
 
         //glDrawArrays(GL_LINES, 0, vertsToDraw);
         glDrawArrays(GL_TRIANGLES, 0, vertsToDraw);
+
+        timerD += glfwGetTime() - timeNow;
     }
+
+    //std::cout << timerE << " Timer before getting vertex and colour data" << std::endl;
+    //std::cout << timerA << " Timer before calculating MVP Matrix" << std::endl;
+    //std::cout << timerB << " Timer before setting buffers" << std::endl;
+    //std::cout << timerC << " Timer before setting attribute buffers" << std::endl;
+    //std::cout << timerD << " Timer after drawing" << std::endl << std::endl;
 }
 
 void Scene::UpdateVertexBuffer(int &vertsToDraw_) {

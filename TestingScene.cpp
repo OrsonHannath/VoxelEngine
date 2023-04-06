@@ -16,13 +16,21 @@ TestingScene::TestingScene(std::string name, GLFWwindow* window_, std::map<std::
     voxelWorld_->SetComputeProgramID(GLHandles["computeProgramID"]);
     voxelWorld_->SetGreedyMeshingComputeProgramID(GLHandles["greedyMeshComputeProgramID"]);
 
-    // Without Greedy Meshing - ~60fps for 12x12x12 chunks rendered
+    // Without Greedy Meshing - ~60fps for 12x12x12 chunks rendered (pre scene rendering optimization 6/04/2023)
+    // With Chunk Based Greedy Meshing - ~100fps for 12x12x12 chunks rendered (pre scene rendering optimization 6/04/2023)
+    // With Chunk Based Greedy Meshing - ~120fps for 12x12x12 chunks rendered (post scene rendering optimization 6/04/2023)
+    // With Chunk Based Greedy Meshing and Perlin Noise Generation - ~4fps for 12x12x12 chunks rendered (pre scene rendering optimization 6/04/2023)
+    // With Chunk Based Greedy Meshing and Perlin Noise Generation - ~25fps for 12x12x12 chunks rendered (post scene rendering optimization 6/04/2023)
+
+    // Implement LOD
+    // Implement chunk loading
+    // Make chunks use less data
 
     int chunkViewDist = 2;
     int chunkSize = 16;
-    for(int i = ceil(-(chunkViewDist/2.0f)); i < ceil(chunkViewDist/2.0f); i++) {
-        for (int j = ceil(-(chunkViewDist/2.0f)); j < ceil(chunkViewDist/2.0f); j++) {
-            for (int k = ceil(-(chunkViewDist/2.0f)); k < ceil(chunkViewDist/2.0f); k++) {
+    for(int i = 0; i < chunkViewDist; i++) {
+        for (int j = 0; j > -chunkViewDist; j--) {
+            for (int k = 0; k < chunkViewDist; k++) {
 
                 // Add a Chunk to the VoxelWorld
                 vec3 chunkPosition = vec3((i*chunkSize), (j*chunkSize), (k*chunkSize));

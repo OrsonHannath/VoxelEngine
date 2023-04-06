@@ -36,7 +36,7 @@ void RenderObject::OverlayVertexColours(Colour col) {
     vertex_colour_data = colourDataVec;
 }
 
-void RenderObject::SetObjectColour(vec4 col_) {
+void RenderObject::SetObjectColour(ColourStruct col_) {
 
     std::vector<ColourStruct> colourDataVec;
     for(VertexStruct vs : vertex_buffer_data){
@@ -78,6 +78,16 @@ mat4 RenderObject::GetMVPMatrix() {
     return mvpMatrix;
 }
 
+int RenderObject::GetVertexBufferDataSize() {
+
+    return vertex_buffer_data.size();
+}
+
+int RenderObject::GetVertexColourDataSize() {
+
+    return vertex_colour_data.size();
+}
+
 std::vector<VertexStruct> RenderObject::GetVertexBufferData() {
 
     return vertex_buffer_data;
@@ -86,4 +96,14 @@ std::vector<VertexStruct> RenderObject::GetVertexBufferData() {
 std::vector<ColourStruct> RenderObject::GetVertexColourData() {
 
     return vertex_colour_data;
+}
+
+std::vector<VertexStruct>* RenderObject::GetVertexBufferDataAddress() {
+
+    return &vertex_buffer_data;
+}
+
+std::vector<ColourStruct>* RenderObject::GetVertexColourDataAddress() {
+
+    return &vertex_colour_data;
 }

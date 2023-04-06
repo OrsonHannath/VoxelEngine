@@ -25,7 +25,7 @@ public:
     RenderObject(std::string name);
 
     void SetMVPMatrix(mat4 mvp);
-    void SetObjectColour(vec4 col_);
+    void SetObjectColour(ColourStruct col_);
     void SetVertexBufferData(std::vector<VertexStruct> data_);
     void SetVertexColourData(std::vector<ColourStruct> data_);
 
@@ -37,8 +37,12 @@ public:
     vec3 GetObjectRotation();
     vec3 GetObjectScale();
     mat4 GetMVPMatrix();
+    int GetVertexBufferDataSize();
+    int GetVertexColourDataSize();
     std::vector<VertexStruct> GetVertexBufferData();
     std::vector<ColourStruct> GetVertexColourData();
+    std::vector<VertexStruct>* GetVertexBufferDataAddress();
+    std::vector<ColourStruct>* GetVertexColourDataAddress();
 };
 
 
