@@ -8,11 +8,53 @@ VoxelWorld::VoxelWorld() {
 
 }
 
+// Multithreading chunk loading and unloading
+void VoxelWorld::UpdateChunks(int viewDist, vec3 viewerPos) {
+
+    // Check if chunks surrounding viewerPos exist and if so update them
+    for(int i = 0; i < viewDist; i++){
+        for(int j = 0; j < viewDist; j++){
+            for(int k = 0; k < viewDist; k++){
+
+                // Get chunk position
+                int x = i - (int)round(viewDist/2);
+                int y = j - (int)round(viewDist/2);
+                int z = k - (int)round(viewDist/2);
+                ivec3 chunkPos = {round(((viewerPos.x - (chunkSize/2)) + (x * chunkSize)) / (float)chunkSize) * chunkSize,
+                                  round(((viewerPos.y - (chunkSize/2)) + (y * chunkSize)) / (float)chunkSize) * chunkSize,
+                                  round(((viewerPos.z - (chunkSize/2)) + (z * chunkSize)) / (float)chunkSize) * chunkSize};
+
+                // Make sure the chunk is within the viewDistance
+                if(sqrt(x*x + y*y + z*z) <= viewDist * chunkSize){
+
+                    // Make an int tuple for the position
+                    std::tuple<int, int, int> posTuple(chunkPos.x, chunkPos.y, chunkPos.z);
+
+                    // Check if a chunk exists at this position already
+                    if(chunksMap.find(posTuple) == chunksMap.end()){
+
+                        // Make the chunk
+                        std::tuple<int, int, int> posTuple(chunkPos.x, chunkPos.y, chunkPos.z);
+                        Chunk* chunk = new Chunk(chunkPos);
+                        chunksMap[posTuple] = chunk;
+
+                        //m_Futures.push_back(std::async(std::launch::async, &VoxelWorld::LoadChunk, this, chunkPos)); // This doesn't
+                        LoadChunk(chunkPos); // This works
+                    }
+                }
+            }
+        }
+    }
+}
+
 void VoxelWorld::LoadChunk(ivec3 chunkPos){
 
-    // Find the chunk data
+    // Get the chunk
     std::tuple<int, int, int> posTuple(chunkPos.x, chunkPos.y, chunkPos.z);
     Chunk* chunk = chunksMap[posTuple];
+
+    // Generate the chunks voxels
+    chunk->GenerateChunkVoxels();
 
     // Update the new chunks neighbouring chunks and the neighbouring chunks' data about this new chunk
     chunk->UpdateChunksNeighbours(CheckNeighbouringChunksLoaded(chunkPos), voxelComputeProgramID, greedyMeshComputeProgramID); // TODO make a compute shader purely to update the vertices of a face
@@ -22,24 +64,28 @@ void VoxelWorld::LoadChunk(ivec3 chunkPos){
 
     // Set the loadedChunks value to true
     loadedChunks[posTuple] = true;
+
+    // Set the chunks loaded value to true
+    chunk->SetLoaded(true);
 }
 
 void VoxelWorld::UnloadChunk(ivec3 chunkPos){
 
     // Find the chunk data
     std::tuple<int, int, int> posTuple(chunkPos.x, chunkPos.y, chunkPos.z);
-    Chunk* chunk = chunksMap[posTuple];
 
-    // Set the loadedChunks value to false
-    loadedChunks[posTuple] = false;
-}
+    // Check if the chunk is loaded
+    if(chunksMap.find(posTuple) != chunksMap.end()){
 
-void VoxelWorld::AddChunk(Chunk* chunk) {
+        // Set the loadedChunks value to false
+        loadedChunks[posTuple] = false;
 
-    vec3 chunkPos = chunk->GetPosition();
-    std::tuple<int, int, int> posTuple(chunkPos.x, chunkPos.y, chunkPos.z);
+        // Delete the object from memory
+        delete chunksMap[posTuple];
 
-    chunksMap[posTuple] = chunk;
+        // Remove the pointer to the chunk from chunks map
+        chunksMap.erase(posTuple);
+    }
 }
 
 void VoxelWorld::SetComputeProgramID(GLuint voxelComputeProgramID_) {

@@ -26,30 +26,12 @@ TestingScene::TestingScene(std::string name, GLFWwindow* window_, std::map<std::
     // Implement LOD
     // Implement chunk loading
     // Make chunks use less data
+}
 
-    int chunkViewDist = 12;
-    int chunkSize = 16;
-    for(int i = 0; i < chunkViewDist; i++) {
-        for (int j = 0; j > -chunkViewDist; j--) {
-            for (int k = 0; k < chunkViewDist; k++) {
+void TestingScene::UpdateScene(float *deltaTimePtr) {
 
-                // Add a Chunk to the VoxelWorld
-                vec3 chunkPosition = vec3((i*chunkSize), (j*chunkSize), (k*chunkSize));
-                Chunk *chunk = new Chunk(chunkPosition);
-                voxelWorld_->AddChunk(chunk);
+    int chunkViewDist = 1;
 
-                // Generate/Load the chunk
-                chunk->GenerateChunkVoxels();
-                voxelWorld_->LoadChunk(chunkPosition);
-
-                // Add the chunks render object to the scene
-                RenderObject *chunkRenderObject = chunk->GetRenderObject();
-                chunkRenderObjectsMapByName[chunkRenderObject->GetName()] = chunkRenderObject;
-
-                // Add a random colour overlay to each chunk
-                //Colour randCol = RandomColour();
-                //chunkRenderObject->OverlayVertexColours(randCol);
-            }
-        }
-    }
+    //std::future<void> asyncA = std::async(std::launch::async, &VoxelWorld::UpdateChunks, voxelWorld, chunkViewDist, GetCamera()->GetPosition());
+    voxelWorld->UpdateChunks(chunkViewDist,Scene::GetCamera()->GetPosition());
 }

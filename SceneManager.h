@@ -21,6 +21,7 @@ public:
     void RenderScene(Scene* scene_);
     void AddScene(Scene* scene_);
     void SetCurrentScene(Scene* scene_);
+    void UpdateCurrentScene(float* deltaTime);
 
     Scene* GetScene(std::string name);
     Scene* GetCurrentScene();

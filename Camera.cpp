@@ -152,3 +152,7 @@ void Camera::SetMouseSpeed(float mouseSpeed_) {
 
     mouseSpeed = mouseSpeed_;
 }
+
+vec3 Camera::GetPosition() {
+    return position;
+}

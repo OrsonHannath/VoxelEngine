@@ -21,9 +21,11 @@
 class Chunk {
 private:
     ivec3 position;
+    int LOD;
     static const int size = 16;
     VoxelStruct chunkVoxels[size][size][size];
     RenderObject* renderObject;
+    bool loaded = false;
 
     // Neighbours Voxels Information
     int chunkNeighbouringFaceVoxels[6][size][size] = {0}; // Voxel solidity information for each neighbouring face (front, right, back, left, bottom, top)
@@ -35,7 +37,12 @@ public:
     void UpdateChunkNeighbour(Chunk* chunkN, int faceIndex);
     void UpdateChunksNeighbours(std::vector<Chunk*> chunkNeighbours, GLuint computeShaderID, GLuint greedyMeshComputeShaderID);
 
+    void SetLOD(int lod);
+    void SetLoaded(bool loaded_);
+
     ivec3 GetPosition();
+    int GetLOD();
+    bool GetLoaded();
     std::string GetChunkName();
     RenderObject* GetRenderObject();
     std::vector<std::vector<int>> GetChunkFaceSolidity(int faceIndex); // Index Order: front, right, back, left, bottom, top

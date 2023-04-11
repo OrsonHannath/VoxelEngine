@@ -38,6 +38,10 @@ std::string Scene::GetName(){
     return name;
 }
 
+void Scene::UpdateScene(float* deltaTimePtr){
+
+};
+
 void Scene::RenderScene(float* deltaTimePtr) {
 
     // Update the Camera
@@ -85,6 +89,12 @@ void Scene::RenderScene(float* deltaTimePtr) {
 
     // Draw each chunk
     for(auto& kv : voxelWorld->GetChunksMap()){
+
+        // If chunk isn't actually loaded continue
+        if(!kv.second->GetLoaded()){
+
+            continue;
+        }
 
         float timeNow = glfwGetTime();
 

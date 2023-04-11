@@ -38,6 +38,7 @@ public:
 
     Scene(std::string name_, GLFWwindow* window_, std::map<std::string, GLuint> GLHandles_);
     void RenderScene(float* deltaTimePtr);
+    virtual void UpdateScene(float* deltaTimePtr);
 
     void SetCamera(Camera* cam);
     void SetGLHandle(std::string handleStr_, GLuint handleVal_);

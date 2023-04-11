@@ -40,6 +40,8 @@ public:
     void SetSpeed(float speed_);
     void SetMouseSpeed(float mouseSpeed_);
     void UpdateCamera(float* deltaTimePtr);
+
+    vec3 GetPosition();
 };
 
 

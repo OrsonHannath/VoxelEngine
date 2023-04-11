@@ -117,6 +117,9 @@ void OpenGLApp::OnLoop() {
     std::string fpsStr = std::to_string((int)(1.0/deltaTime)) + "fps";
     glfwSetWindowTitle(window, ("VoxelEngine " + fpsStr).c_str());
 
+    // Call OnLoop inside scene
+    sceneManager->UpdateCurrentScene(&deltaTime);
+
 }
 
 void OpenGLApp::OnRender() {

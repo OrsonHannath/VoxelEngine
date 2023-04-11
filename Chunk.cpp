@@ -79,8 +79,6 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshCompu
         }
     }
 
-    float postVectorCreationTime = glfwGetTime() - startTime;
-
     GLuint voxelDataBuffer;
     glGenBuffers(1, &voxelDataBuffer);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, voxelDataBuffer);
@@ -120,6 +118,8 @@ void Chunk::GenerateChunkVertices(GLuint computeShaderID, GLuint greedyMeshCompu
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, neighbouringFacesBuffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4 ,neighbouringFacesBuffer);
     glBufferStorage(GL_SHADER_STORAGE_BUFFER, neighbouringFaceVoxels.size() * sizeof(int), neighbouringFaceVoxels.data(), 0);
+
+    float postVectorCreationTime = glfwGetTime() - startTime;
 
     // Compute the shader
     glUseProgram(computeShaderID);
@@ -430,4 +430,24 @@ std::string Chunk::GetChunkName() {
 RenderObject* Chunk::GetRenderObject() {
 
     return renderObject;
+}
+
+void Chunk::SetLOD(int lod) {
+
+    LOD = lod;
+}
+
+int Chunk::GetLOD() {
+
+    return LOD;
+}
+
+void Chunk::SetLoaded(bool loaded_) {
+
+    loaded = loaded_;
+}
+
+bool Chunk::GetLoaded() {
+
+    return loaded;
 }

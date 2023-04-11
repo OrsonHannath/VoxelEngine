@@ -8,6 +8,7 @@
 #include <map>
 #include <iostream>
 #include <vector>
+#include <future>
 #include "Chunk.h"
 
 class VoxelWorld {
@@ -16,12 +17,17 @@ private:
     std::map<std::tuple<int, int, int>, bool> loadedChunks; // Stores whether a chunk is loaded mapped using the key of the chunks name (could optimize key)
     GLuint voxelComputeProgramID;
     GLuint greedyMeshComputeProgramID;
+    int chunkSize = 16;
+
+    std::vector<std::future<void>> m_Futures;
+    std::mutex s_Mutex;
 public:
     VoxelWorld();
 
+    void UpdateChunks(int viewDist, vec3 viewerPos);
+
     void SetComputeProgramID(GLuint voxelComputeProgramID_);
     void SetGreedyMeshingComputeProgramID(GLuint greedyMeshComputeProgramID_);
-    void AddChunk(Chunk* chunk);
     void LoadChunk(ivec3 chunkPos);
     void UnloadChunk(ivec3 chunkPos);
 

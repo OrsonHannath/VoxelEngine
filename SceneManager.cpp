@@ -34,3 +34,8 @@ Scene* SceneManager::GetCurrentScene() {
 
     return currentScene;
 }
+
+void SceneManager::UpdateCurrentScene(float* deltaTime){
+
+    currentScene->UpdateScene(deltaTime);
+}

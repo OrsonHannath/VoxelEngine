@@ -18,6 +18,8 @@
 class TestingScene: public Scene {
 public:
     TestingScene(std::string name, GLFWwindow* window_, std::map<std::string, GLuint> GLHandles_);
+
+    void UpdateScene(float *deltaTimePtr);
 };
 
 
