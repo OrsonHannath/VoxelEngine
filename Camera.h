@@ -25,6 +25,7 @@ private:
     mat4 view;
 
     GLFWwindow* window;
+    bool windowUnfocused = false;
 public:
 
     Camera(vec3 position_, GLFWwindow* window_);

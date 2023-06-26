@@ -33,9 +33,15 @@ void Chunk::GenerateChunkVoxels() {
                 // Set the voxel isSolid
                 if(noiseVal > 0.0f){
 
+                    int voxelType = (int)(noiseVal*255) + 25;
+                    if((int)(noiseVal*255) + 25 < 0){
+
+                        voxelType = 0;
+                    }
+
                     chunkVoxels[i][j][k].isSolid = 1;
-                    chunkVoxels[i][j][k].voxType = (int)(noiseVal*255) + 25;
-                    //chunkVoxels[i][j][k].voxType = 5;//(rand() % 10); // Only give it a type if it is a solid
+                    chunkVoxels[i][j][k].voxType = voxelType;
+                    //chunkVoxels[i][j][k].voxType = (rand() % 5)*(255/20); // Only give it a type if it is a solid
                 }else{
                     chunkVoxels[i][j][k].isSolid = 0;
                 }

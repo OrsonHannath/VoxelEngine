@@ -140,7 +140,7 @@ void OpenGLApp::OnExit() {
     // Exit the App Here
 }
 
-// TODO create a class for shaders so that they can be easily loaded and added
+// TODO create a class for shaders so that they can be easily loaded and added (Think this has been done in the ray-traced version)
 GLuint* OpenGLApp::LoadShaders(const char *vertex_file_path, const char *fragment_file_path, const char *compute_file_path, const char *greedy_meshing_compute_file_path) {
 
     // Create the shaders

@@ -65,6 +65,21 @@ void Camera::UpdateCamera(float* deltaTimePtr) {
     int windowHeight;
     glfwGetWindowSize(window, &windowWidth, &windowHeight);
 
+    // Only update the camera if the window is focused
+    if(!glfwGetWindowAttrib(window, GLFW_FOCUSED)){
+
+        windowUnfocused = true;
+        return;
+    }
+
+    // Simple way to ensure camera only updates when window is focused
+    if(windowUnfocused){
+
+        glfwSetCursorPos(window, windowWidth/2.0, windowHeight/2.0);
+        windowUnfocused = false;
+        return;
+    }
+
     // Update the mouse position
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
@@ -73,8 +88,8 @@ void Camera::UpdateCamera(float* deltaTimePtr) {
     glfwSetCursorPos(window, windowWidth/2.0, windowHeight/2.0);
 
     // Compute new orientation
-    horizontalAngle += (mouseSpeed * *deltaTimePtr) * float(windowWidth/2 - mouseX);
-    verticalAngle += (mouseSpeed * *deltaTimePtr) * float(windowHeight/2 - mouseY);
+    horizontalAngle += (mouseSpeed / 500) * float(windowWidth/2 - mouseX);
+    verticalAngle += (mouseSpeed / 500) * float(windowHeight/2 - mouseY);
 
     // Direction : Spherical coordinates to Cartesian coordinates conversion
     glm::vec3 direction(

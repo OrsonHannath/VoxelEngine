@@ -1,6 +1,8 @@
 #version 440 core
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 16) in;
 
+bool debugFaces = false;
+
 struct Chunk{
     vec3 pos;
 };
@@ -103,12 +105,15 @@ void greedyMeshFacesHorizontal(int index, int faceIndex){
         }
 
         int vertexIndex = horizGreedyMeshVertexIndex[index - width + 1];
-        vertex_colours[vertexIndex + 0] = Colour(255, 0, 0, 255);
-        vertex_colours[vertexIndex + 1] = Colour(0, 255, 0, 255);
-        vertex_colours[vertexIndex + 2] = Colour(0, 0, 255, 255);
-        vertex_colours[vertexIndex + 3] = Colour(255, 0, 0, 255);
-        vertex_colours[vertexIndex + 4] = Colour(0, 255, 0, 255);
-        vertex_colours[vertexIndex + 5] = Colour(0, 0, 255, 255);
+
+        if(debugFaces){
+            vertex_colours[vertexIndex + 0] = Colour(255, 0, 0, 255);
+            vertex_colours[vertexIndex + 1] = Colour(0, 255, 0, 255);
+            vertex_colours[vertexIndex + 2] = Colour(0, 0, 255, 255);
+            vertex_colours[vertexIndex + 3] = Colour(255, 0, 0, 255);
+            vertex_colours[vertexIndex + 4] = Colour(0, 255, 0, 255);
+            vertex_colours[vertexIndex + 5] = Colour(0, 0, 255, 255);
+        }
 
         // Create a Greedy Mesh Face
         if(faceIndex == 0){
@@ -165,12 +170,15 @@ void greedyMeshFacesHorizontal(int index, int faceIndex){
         }
 
         int vertexIndex = horizGreedyMeshVertexIndex[index - width + 1];
-        vertex_colours[vertexIndex + 0] = Colour(255, 0, 0, 255);
-        vertex_colours[vertexIndex + 1] = Colour(0, 255, 0, 255);
-        vertex_colours[vertexIndex + 2] = Colour(0, 0, 255, 255);
-        vertex_colours[vertexIndex + 3] = Colour(255, 0, 0, 255);
-        vertex_colours[vertexIndex + 4] = Colour(0, 255, 0, 255);
-        vertex_colours[vertexIndex + 5] = Colour(0, 0, 255, 255);
+
+        if(debugFaces){
+            vertex_colours[vertexIndex + 0] = Colour(255, 0, 0, 255);
+            vertex_colours[vertexIndex + 1] = Colour(0, 255, 0, 255);
+            vertex_colours[vertexIndex + 2] = Colour(0, 0, 255, 255);
+            vertex_colours[vertexIndex + 3] = Colour(255, 0, 0, 255);
+            vertex_colours[vertexIndex + 4] = Colour(0, 255, 0, 255);
+            vertex_colours[vertexIndex + 5] = Colour(0, 0, 255, 255);
+        }
 
         // Create a Greedy Mesh Left Face
         if(faceIndex == 3){
@@ -227,12 +235,15 @@ void greedyMeshFacesHorizontal(int index, int faceIndex){
         }
 
         int vertexIndex = horizGreedyMeshVertexIndex[index - width + 1];
-        vertex_colours[vertexIndex + 0] = Colour(255, 0, 0, 255);
-        vertex_colours[vertexIndex + 1] = Colour(0, 255, 0, 255);
-        vertex_colours[vertexIndex + 2] = Colour(0, 0, 255, 255);
-        vertex_colours[vertexIndex + 3] = Colour(255, 0, 0, 255);
-        vertex_colours[vertexIndex + 4] = Colour(0, 255, 0, 255);
-        vertex_colours[vertexIndex + 5] = Colour(0, 0, 255, 255);
+
+        if(debugFaces){
+            vertex_colours[vertexIndex + 0] = Colour(255, 0, 0, 255);
+            vertex_colours[vertexIndex + 1] = Colour(0, 255, 0, 255);
+            vertex_colours[vertexIndex + 2] = Colour(0, 0, 255, 255);
+            vertex_colours[vertexIndex + 3] = Colour(255, 0, 0, 255);
+            vertex_colours[vertexIndex + 4] = Colour(0, 255, 0, 255);
+            vertex_colours[vertexIndex + 5] = Colour(0, 0, 255, 255);
+        }
 
         // Create a Greedy Mesh Left Face
         if(faceIndex == 5){
@@ -299,12 +310,15 @@ void greedyMeshFacesVertical(int index, int faceIndex){
         }
 
         int vertexIndex = vertGreedyMeshVertexIndex[index];
-        vertex_colours[vertexIndex + 0] = Colour(255, 0, 0, 255);
-        vertex_colours[vertexIndex + 1] = Colour(0, 255, 0, 255);
-        vertex_colours[vertexIndex + 2] = Colour(0, 0, 255, 255);
-        vertex_colours[vertexIndex + 3] = Colour(255, 0, 0, 255);
-        vertex_colours[vertexIndex + 4] = Colour(0, 255, 0, 255);
-        vertex_colours[vertexIndex + 5] = Colour(0, 0, 255, 255);
+
+        if(debugFaces){
+            vertex_colours[vertexIndex + 0] = Colour(255, 0, 0, 255);
+            vertex_colours[vertexIndex + 1] = Colour(0, 255, 0, 255);
+            vertex_colours[vertexIndex + 2] = Colour(0, 0, 255, 255);
+            vertex_colours[vertexIndex + 3] = Colour(255, 0, 0, 255);
+            vertex_colours[vertexIndex + 4] = Colour(0, 255, 0, 255);
+            vertex_colours[vertexIndex + 5] = Colour(0, 0, 255, 255);
+        }
 
         // Create a Greedy Mesh Front Face
         if(faceIndex == 0){
@@ -361,12 +375,15 @@ void greedyMeshFacesVertical(int index, int faceIndex){
         }
 
         int vertexIndex = vertGreedyMeshVertexIndex[index];
-        vertex_colours[vertexIndex + 0] = Colour(255, 0, 0, 255);
-        vertex_colours[vertexIndex + 1] = Colour(0, 255, 0, 255);
-        vertex_colours[vertexIndex + 2] = Colour(0, 0, 255, 255);
-        vertex_colours[vertexIndex + 3] = Colour(255, 0, 0, 255);
-        vertex_colours[vertexIndex + 4] = Colour(0, 255, 0, 255);
-        vertex_colours[vertexIndex + 5] = Colour(0, 0, 255, 255);
+
+        if(debugFaces){
+            vertex_colours[vertexIndex + 0] = Colour(255, 0, 0, 255);
+            vertex_colours[vertexIndex + 1] = Colour(0, 255, 0, 255);
+            vertex_colours[vertexIndex + 2] = Colour(0, 0, 255, 255);
+            vertex_colours[vertexIndex + 3] = Colour(255, 0, 0, 255);
+            vertex_colours[vertexIndex + 4] = Colour(0, 255, 0, 255);
+            vertex_colours[vertexIndex + 5] = Colour(0, 0, 255, 255);
+        }
 
         // Create a Greedy Mesh Left Face
         if(faceIndex == 3){
@@ -423,12 +440,15 @@ void greedyMeshFacesVertical(int index, int faceIndex){
         }
 
         int vertexIndex = vertGreedyMeshVertexIndex[index];
-        vertex_colours[vertexIndex + 0] = Colour(255, 0, 0, 255);
-        vertex_colours[vertexIndex + 1] = Colour(0, 255, 0, 255);
-        vertex_colours[vertexIndex + 2] = Colour(0, 0, 255, 255);
-        vertex_colours[vertexIndex + 3] = Colour(255, 0, 0, 255);
-        vertex_colours[vertexIndex + 4] = Colour(0, 255, 0, 255);
-        vertex_colours[vertexIndex + 5] = Colour(0, 0, 255, 255);
+
+        if(debugFaces){
+            vertex_colours[vertexIndex + 0] = Colour(255, 0, 0, 255);
+            vertex_colours[vertexIndex + 1] = Colour(0, 255, 0, 255);
+            vertex_colours[vertexIndex + 2] = Colour(0, 0, 255, 255);
+            vertex_colours[vertexIndex + 3] = Colour(255, 0, 0, 255);
+            vertex_colours[vertexIndex + 4] = Colour(0, 255, 0, 255);
+            vertex_colours[vertexIndex + 5] = Colour(0, 0, 255, 255);
+        }
 
         if(faceIndex == 5){
 
