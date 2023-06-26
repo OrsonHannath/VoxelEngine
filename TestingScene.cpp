@@ -16,6 +16,9 @@ TestingScene::TestingScene(std::string name, GLFWwindow* window_, std::map<std::
     voxelWorld_->SetComputeProgramID(GLHandles["computeProgramID"]);
     voxelWorld_->SetGreedyMeshingComputeProgramID(GLHandles["greedyMeshComputeProgramID"]);
 
+    int initChunksDistance = 3;
+    voxelWorld->UpdateChunks(initChunksDistance,Scene::GetCamera()->GetPosition());
+
     // Without Greedy Meshing - ~60fps for 12x12x12 chunks rendered (pre scene rendering optimization 6/04/2023)
     // With Chunk Based Greedy Meshing - ~100fps for 12x12x12 chunks rendered (pre scene rendering optimization 6/04/2023)
     // With Chunk Based Greedy Meshing - ~120fps for 12x12x12 chunks rendered (post scene rendering optimization 6/04/2023)
@@ -33,5 +36,7 @@ void TestingScene::UpdateScene(float *deltaTimePtr) {
     int chunkViewDist = 1;
 
     //std::future<void> asyncA = std::async(std::launch::async, &VoxelWorld::UpdateChunks, voxelWorld, chunkViewDist, GetCamera()->GetPosition());
-    voxelWorld->UpdateChunks(chunkViewDist,Scene::GetCamera()->GetPosition());
+
+    // This allows the loading of new chunks based on viewers position
+    //voxelWorld->UpdateChunks(chunkViewDist,Scene::GetCamera()->GetPosition());
 }

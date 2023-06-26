@@ -8,7 +8,7 @@ VoxelWorld::VoxelWorld() {
 
 }
 
-// Multithreading chunk loading and unloading
+// Single-thread chunk loading and unloading
 void VoxelWorld::UpdateChunks(int viewDist, vec3 viewerPos) {
 
     // Check if chunks surrounding viewerPos exist and if so update them
@@ -17,12 +17,12 @@ void VoxelWorld::UpdateChunks(int viewDist, vec3 viewerPos) {
             for(int k = 0; k < viewDist; k++){
 
                 // Get chunk position
-                int x = i - (int)round(viewDist/2);
-                int y = j - (int)round(viewDist/2);
-                int z = k - (int)round(viewDist/2);
-                ivec3 chunkPos = {round(((viewerPos.x - (chunkSize/2)) + (x * chunkSize)) / (float)chunkSize) * chunkSize,
-                                  round(((viewerPos.y - (chunkSize/2)) + (y * chunkSize)) / (float)chunkSize) * chunkSize,
-                                  round(((viewerPos.z - (chunkSize/2)) + (z * chunkSize)) / (float)chunkSize) * chunkSize};
+                int x = i - (int)floor(viewDist/2); // These are floored to prevent rounding issues where 0.5 = 1, and -0.5 = -1
+                int y = j - (int)floor(viewDist/2);
+                int z = k - (int)floor(viewDist/2);
+                ivec3 chunkPos = {floor(((viewerPos.x - (chunkSize/2)) + (x * chunkSize)) / (float)chunkSize) * chunkSize,
+                                  floor(((viewerPos.y - (chunkSize/2)) + (y * chunkSize)) / (float)chunkSize) * chunkSize,
+                                  floor(((viewerPos.z - (chunkSize/2)) + (z * chunkSize)) / (float)chunkSize) * chunkSize};
 
                 // Make sure the chunk is within the viewDistance
                 if(sqrt(x*x + y*y + z*z) <= viewDist * chunkSize){

@@ -14,7 +14,7 @@ using namespace glm;
 
 class Camera {
 private:
-    vec3 position = vec3(0, 0, 5);
+    vec3 position = vec3(0, 0, 0);
     float horizontalAngle = 3.14f;
     float verticalAngle = 0.0f;
     int fov = 60;
