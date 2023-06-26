@@ -62,11 +62,12 @@ The voxel engine utilizes GPU based greedy meshing such that all neighbouring fa
 [![Default - Walkthrough](examples/GIFS/Default_walkthrough12.gif)]
 
 # Optimization History
-|Date|Optimization|Methods|Chunk Size||World Size|FPS|Memory|
-|:---:|:---:|:---:|:---:|:---:|:---:|
-|06/04/2023|Pre-Scene Rendering Optimizations|All Faces Rendered|16x16x16|12x12x12|~60fps|Not Documented|
-|06/04/2023|Pre-Scene Rendering Optimizations|Greedy Meshing|16x16x16|12x12x12|~100fps|Not Documented|
-|06/04/2023|Pre-Scene Rendering Optimizations|Greedy Meshing|16x16x16|12x12x12|~120fps|Not Documented|
-|06/04/2023|Pre-Scene Rendering Optimizations|Greedy Meshing and Perlin Noise|16x16x16|12x12x12|~4fps|Not Documented|
-|06/04/2023|Post-Scene Rendering Optimizations|Greedy Meshing and Perlin Noise|16x16x16|12x12x12|~25fps|~24gb|
-|07/04/2023|Chunk Byte Size Reduction|Greedy Meshing and Perlin Noise|16x16x16|12x12x12|~30fps|~1.5GB|
+|Date|Optimization|Methods|Chunk Size (Voxels)|World Size (Chunks)|Total Voxels|FPS|Memory|
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+|06/04/2023|Pre-Scene Rendering Optimizations|All Faces Rendered|16x16x16|12x12x12|7,077,888|~60fps|Not Documented|
+|06/04/2023|Pre-Scene Rendering Optimizations|Greedy Meshing|16x16x16|12x12x12|7,077,888|~100fps|Not Documented|
+|06/04/2023|Pre-Scene Rendering Optimizations|Greedy Meshing|16x16x16|12x12x12|7,077,888|~120fps|Not Documented|
+|06/04/2023|Pre-Scene Rendering Optimizations|Greedy Meshing and Perlin Noise|16x16x16|12x12x12|7,077,888|~4fps|Not Documented|
+|06/04/2023|Post-Scene Rendering Optimizations|Greedy Meshing and Perlin Noise|16x16x16|12x12x12|7,077,888|~25fps|~30gb|
+|07/04/2023|Post-Scene Rendering Optimizations, Fixed Buffer Memory Leak|Greedy Meshing and Perlin Noise|16x16x16|12x12x12|7,077,888|~25fps|~8gb|
+|07/04/2023|Chunk Byte Size Reduction|Greedy Meshing and Perlin Noise|16x16x16|12x12x12|7,077,888|~30fps|~1.5GB|
